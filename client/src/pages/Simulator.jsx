@@ -138,7 +138,7 @@ export default function Simulator() {
               <div className="border-b border-white/8 px-5 py-4">
                 <p className="section-title">Twin Preview</p>
               </div>
-              <div className="h-[260px]">
+              <div className="h-[340px]">
                 <CarbonTwin score={simulatedResult.total} animating={false} />
               </div>
             </section>

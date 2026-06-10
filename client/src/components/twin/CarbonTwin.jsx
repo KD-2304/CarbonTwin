@@ -227,8 +227,8 @@ function Environment({ score }) {
 // ─── MAIN COMPONENT ────────────────────────────────────────────
 export default function CarbonTwin({ score = 3000, animating = false }) {
   return (
-    <div className="w-full h-full min-h-[350px] rounded-2xl overflow-hidden relative">
-      <Canvas camera={{ position: [0, 1.2, 3.5], fov: 45 }}>
+    <div className="w-full h-full min-h-0 rounded-lg overflow-hidden relative">
+      <Canvas camera={{ position: [0, 0.75, 5], fov: 42 }}>
         <Environment score={score} />
         <AvatarBody score={score} animating={animating} />
         <ParticleSystem score={score} />
