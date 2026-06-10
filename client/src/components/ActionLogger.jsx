@@ -4,10 +4,10 @@ import { useScore } from '../context/ScoreContext';
 import { ACTION_OPTIONS } from '../utils/emissionFactors';
 
 const categoryLabels = {
-  transport: { label: 'Transport', icon: '🚗', color: 'green' },
-  meal: { label: 'Meals', icon: '🍽️', color: 'cyan' },
-  home: { label: 'Home', icon: '🏠', color: 'amber' },
-  shopping: { label: 'Shopping', icon: '🛍️', color: 'purple' }
+  transport: { label: 'Transport', icon: 'TR' },
+  meal: { label: 'Meals', icon: 'ME' },
+  home: { label: 'Home', icon: 'HO' },
+  shopping: { label: 'Shopping', icon: 'SH' }
 };
 
 export default function ActionLogger() {
@@ -43,102 +43,101 @@ export default function ActionLogger() {
   };
 
   return (
-    <div className="glass-card p-5">
-      <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-        📝 <span>Log Today's Actions</span>
-      </h3>
+    <div className="surface p-5">
+      <div className="mb-4">
+        <p className="section-title">Log Today</p>
+        <p className="text-sm text-mist-500">Capture the choices that shift your score.</p>
+      </div>
 
-      {/* Success notification */}
       <AnimatePresence>
         {success && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className={`mb-4 p-3 rounded-lg flex items-center gap-2 text-sm ${
+            className={`mb-4 flex items-center gap-2 rounded-lg border p-3 text-sm ${
               success.delta < 0
-                ? 'bg-green-500/10 border border-green-500/30 text-green-400'
-                : 'bg-amber-500/10 border border-amber-500/30 text-amber-400'
+                ? 'border-leaf-500/30 bg-leaf-500/10 text-leaf-400'
+                : 'border-sun-400/30 bg-sun-400/10 text-sun-400'
             }`}
           >
-            <span>{success.delta < 0 ? '🌱' : '📊'}</span>
             <span>
-              {success.action}: <strong>{success.delta > 0 ? '+' : ''}{success.delta} kg CO₂</strong>
+              {success.action}: <strong>{success.delta > 0 ? '+' : ''}{success.delta} kg CO2</strong>
             </span>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Category tabs */}
-      <div className="flex gap-1 mb-4 bg-[#0a0f1e] rounded-xl p-1">
+      <div className="segmented mb-4 grid grid-cols-4">
         {Object.entries(categoryLabels).map(([key, cat]) => (
           <button
             key={key}
             onClick={() => setActiveCategory(key)}
-            className={`flex-1 py-2 px-2 rounded-lg text-xs font-medium transition-all ${
+            className={`px-2 py-2 text-xs font-bold transition-all ${
               activeCategory === key
-                ? 'bg-green-500/20 text-green-400'
-                : 'text-gray-500 hover:text-gray-300'
+                ? 'bg-leaf-500/14 text-leaf-400'
+                : 'text-mist-500 hover:text-white'
             }`}
           >
-            <span className="text-base block">{cat.icon}</span>
+            <span className="mx-auto mb-1 flex h-6 w-6 items-center justify-center rounded border border-white/10 text-[10px]">
+              {cat.icon}
+            </span>
             {cat.label}
           </button>
         ))}
       </div>
 
-      {/* Action buttons */}
       <div className="space-y-2">
-        {ACTION_OPTIONS[activeCategory]?.map(action => (
+        {ACTION_OPTIONS[activeCategory]?.map((action) => (
           <motion.button
             key={action.id}
             whileTap={{ scale: 0.97 }}
             onClick={() => handleLog(action)}
             disabled={submitting}
-            className="w-full p-3 rounded-xl bg-[#0a0f1e]/60 border border-[#1f2937] hover:border-green-500/30 transition-all flex items-center justify-between group disabled:opacity-50"
+            className="group flex w-full items-center justify-between gap-3 rounded-lg border border-white/10 bg-[#07110f]/50 p-3 text-left transition-all hover:border-leaf-400/30 hover:bg-white/[0.03] disabled:opacity-50"
           >
-            <div className="flex items-center gap-3">
-              <span className="text-xl">{action.icon}</span>
-              <span className="text-sm text-gray-300 group-hover:text-white transition-colors">{action.label}</span>
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/[0.04] text-xs font-black text-mist-500">
+                {action.label.slice(0, 2).toUpperCase()}
+              </span>
+              <span className="truncate text-sm text-gray-300 transition-colors group-hover:text-white">{action.label}</span>
             </div>
             {action.delta !== undefined && (
-              <span className={`text-xs font-mono px-2 py-1 rounded-lg ${
+              <span className={`shrink-0 rounded-md px-2 py-1 text-xs font-mono ${
                 action.delta < 0
-                  ? 'bg-green-500/10 text-green-400'
-                  : 'bg-red-500/10 text-red-400'
+                  ? 'bg-leaf-500/10 text-leaf-400'
+                  : 'bg-rose-400/10 text-rose-400'
               }`}>
                 {action.delta > 0 ? '+' : ''}{action.delta} kg
               </span>
             )}
             {action.needsKm && (
-              <span className="text-xs text-gray-500">km based</span>
+              <span className="shrink-0 text-xs text-mist-500">km based</span>
             )}
           </motion.button>
         ))}
       </div>
 
-      {/* KM input for transport */}
       {activeCategory === 'transport' && (
         <div className="mt-3">
-          <label className="text-xs text-gray-400 mb-1 block">Distance (km)</label>
+          <label className="mb-1 block text-xs text-mist-500">Distance (km)</label>
           <input
             type="number"
             value={km}
             onChange={(e) => setKm(Number(e.target.value))}
-            className="input-field text-sm py-2"
+            className="input-field py-2 text-sm"
             placeholder="km"
             min={0}
           />
         </div>
       )}
 
-      {/* Notes */}
       <div className="mt-3">
         <input
           type="text"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="input-field text-sm py-2"
+          className="input-field py-2 text-sm"
           placeholder="Add a note (optional)"
         />
       </div>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { aiAPI } from '../api/axios';
 
-export default function AiCoach({ userData }) {
+export default function AiCoach() {
   const [insight, setInsight] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -27,7 +27,7 @@ export default function AiCoach({ userData }) {
       setInsight({
         insight: 'Unable to generate insight right now. Try logging some actions first!',
         actions: [],
-        encouragement: 'Keep tracking your carbon footprint — every action matters!'
+        encouragement: 'Keep tracking your carbon footprint. Every action matters!'
       });
     } finally {
       setInsightLoading(false);
@@ -57,34 +57,34 @@ export default function AiCoach({ userData }) {
   };
 
   return (
-    <div className="glass-card p-5 flex flex-col" style={{ maxHeight: '600px' }}>
-      <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-        🤖 <span>Your AI Carbon Coach</span>
-      </h3>
+    <div className="surface flex max-h-[620px] flex-col p-5">
+      <div className="mb-4">
+        <p className="section-title">AI Carbon Coach</p>
+        <p className="text-sm text-mist-500">Weekly insight plus quick climate coaching.</p>
+      </div>
 
-      {/* Weekly insight */}
       {insightLoading ? (
-        <div className="mb-4 p-4 rounded-xl bg-green-500/5 border border-green-500/20 animate-pulse">
-          <div className="h-4 bg-green-500/10 rounded mb-2 w-3/4" />
-          <div className="h-4 bg-green-500/10 rounded mb-2 w-1/2" />
-          <div className="h-4 bg-green-500/10 rounded w-2/3" />
+        <div className="surface-soft mb-4 animate-pulse p-4">
+          <div className="mb-2 h-4 w-3/4 rounded bg-leaf-500/10" />
+          <div className="mb-2 h-4 w-1/2 rounded bg-leaf-500/10" />
+          <div className="h-4 w-2/3 rounded bg-leaf-500/10" />
         </div>
       ) : insight && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-4 p-4 rounded-xl bg-green-500/5 border border-green-500/20"
+          className="surface-soft mb-4 border-leaf-500/20 bg-leaf-500/6 p-4"
         >
-          <p className="text-sm text-gray-300 mb-3">{insight.insight}</p>
+          <p className="text-sm leading-relaxed text-gray-300">{insight.insight}</p>
 
           {insight.actions?.length > 0 && (
-            <div className="space-y-2 mb-3">
-              <p className="text-xs font-medium text-green-400 uppercase tracking-wider">This week's actions:</p>
+            <div className="mt-3 space-y-2">
+              <p className="meta-label text-leaf-400">This week</p>
               {insight.actions.map((a, i) => (
                 <div key={i} className="flex items-start gap-2 text-sm">
-                  <span className="text-green-400 mt-0.5">•</span>
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-leaf-400" />
                   <span className="text-gray-300">{a.action}
-                    <span className="text-green-400 text-xs ml-1">({a.saving})</span>
+                    <span className="ml-1 text-xs text-leaf-400">({a.saving})</span>
                   </span>
                 </div>
               ))}
@@ -92,22 +92,21 @@ export default function AiCoach({ userData }) {
           )}
 
           {insight.encouragement && (
-            <p className="text-sm text-green-400/80 italic">{insight.encouragement}</p>
+            <p className="mt-3 text-sm text-leaf-400/85">{insight.encouragement}</p>
           )}
         </motion.div>
       )}
 
-      {/* Chat messages */}
-      <div className="flex-1 overflow-y-auto space-y-3 mb-3 min-h-[100px] max-h-[250px] pr-1">
+      <div className="mb-3 min-h-[130px] flex-1 space-y-3 overflow-y-auto pr-1">
         {messages.length === 0 && (
-          <div className="text-center py-4">
-            <p className="text-gray-500 text-sm">Ask me anything about reducing your footprint!</p>
-            <div className="mt-2 flex flex-wrap gap-1.5 justify-center">
-              {['How can I reduce transport emissions?', 'Is my diet score good?', 'What\'s the biggest impact change?'].map(q => (
+          <div className="py-2">
+            <p className="text-sm text-mist-500">Start with one of these prompts.</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {['Reduce transport emissions', 'Review my diet score', 'Find my biggest change'].map((q) => (
                 <button
                   key={q}
-                  onClick={() => { setInput(q); }}
-                  className="text-xs px-2.5 py-1.5 rounded-lg bg-[#1f2937] text-gray-400 hover:text-green-400 hover:border-green-500/30 border border-transparent transition-all"
+                  onClick={() => setInput(q)}
+                  className="rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-left text-xs text-gray-300 transition-colors hover:border-leaf-400/30 hover:text-leaf-400"
                 >
                   {q}
                 </button>
@@ -123,10 +122,10 @@ export default function AiCoach({ userData }) {
             animate={{ opacity: 1, y: 0 }}
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <div className={`max-w-[85%] px-3 py-2 rounded-xl text-sm ${
+            <div className={`max-w-[86%] rounded-lg px-3 py-2 text-sm leading-relaxed ${
               msg.role === 'user'
-                ? 'bg-green-500/20 text-green-100'
-                : 'bg-[#1f2937] text-gray-300'
+                ? 'bg-leaf-500/18 text-leaf-50'
+                : 'bg-[#07110f]/70 text-gray-300'
             }`}>
               {msg.content}
             </div>
@@ -135,11 +134,11 @@ export default function AiCoach({ userData }) {
 
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-[#1f2937] px-4 py-2 rounded-xl">
+            <div className="rounded-lg bg-[#07110f]/70 px-4 py-2">
               <div className="flex gap-1.5">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="h-2 w-2 animate-bounce rounded-full bg-leaf-400" style={{ animationDelay: '0ms' }} />
+                <div className="h-2 w-2 animate-bounce rounded-full bg-leaf-400" style={{ animationDelay: '150ms' }} />
+                <div className="h-2 w-2 animate-bounce rounded-full bg-leaf-400" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           </div>
@@ -147,14 +146,13 @@ export default function AiCoach({ userData }) {
         <div ref={chatEndRef} />
       </div>
 
-      {/* Chat input */}
       <form onSubmit={sendMessage} className="flex gap-2">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask your Carbon Coach..."
-          className="input-field flex-1 text-sm py-2.5"
+          placeholder="Ask your coach..."
+          className="input-field flex-1 py-2.5 text-sm"
           disabled={loading}
         />
         <button
@@ -162,7 +160,7 @@ export default function AiCoach({ userData }) {
           disabled={loading || !input.trim()}
           className="btn-primary px-4 py-2.5 disabled:opacity-40"
         >
-          →
+          Send
         </button>
       </form>
     </div>
