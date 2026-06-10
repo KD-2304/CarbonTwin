@@ -9,9 +9,15 @@
     "client": "cd client && npm run dev",
     "install:all": "npm install && cd server && npm install && cd ../client && npm install",
     "seed": "cd server && node seed.js",
-    "build": "cd client && npm run build"
+    "build": "cd client && npm run build",
+    "test": "npm run test:server && npm run test:client",
+    "test:server": "npx jest --config tests/jest.config.js --forceExit --detectOpenHandles",
+    "test:client": "cd client && npx vitest run --config ../tests/vitest.config.js",
+    "test:watch": "npx jest --config tests/jest.config.js --watch"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.4"
   }
 }
