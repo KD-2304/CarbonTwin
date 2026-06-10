@@ -90,9 +90,9 @@ MONGO_URI=mongodb://localhost:27017/carbon-twin-city
 # Secret key for JWT token signing (use a strong random string in production)
 JWT_SECRET=your_jwt_secret_key_change_this_in_production
 
-# Anthropic API key for AI coaching feature
-# Get yours at: https://console.anthropic.com/
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
+# Gemini API key for AI coaching feature
+# Get yours at: https://aistudio.google.com/apikey
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 ### Variable Reference
@@ -102,7 +102,7 @@ ANTHROPIC_API_KEY=your_anthropic_api_key_here
 | `PORT` | No | `5000` | API server port |
 | `MONGO_URI` | **Yes** | `mongodb://localhost:27017/carbon-twin-city` | MongoDB connection URI |
 | `JWT_SECRET` | **Yes** | — | Secret for signing JWT tokens |
-| `ANTHROPIC_API_KEY` | **Yes** | — | Anthropic API key for AI features |
+| `GEMINI_API_KEY` | **Yes** | — | Google Gemini API key for AI features |
 
 > **⚠️ Important:** Never commit `.env` files to version control. The `.gitignore` is already configured to exclude them.
 
@@ -248,7 +248,7 @@ npm run preview
 - [ ] Set `NODE_ENV=production`
 - [ ] Use a strong, unique `JWT_SECRET`
 - [ ] Use MongoDB Atlas or a managed MongoDB instance
-- [ ] Set a valid `ANTHROPIC_API_KEY`
+- [ ] Set a valid `GEMINI_API_KEY`
 - [ ] Configure CORS origin in `server/index.js` to match your production domain
 - [ ] Serve `client/dist/` via a static file server or CDN (e.g., Vercel, Netlify)
 - [ ] Deploy the server to a Node.js hosting platform (e.g., Render, Railway, Fly.io)
@@ -323,8 +323,8 @@ The Vite proxy only works in development. Ensure both servers are running via `n
 curl http://localhost:5000/api/health
 ```
 
-#### Anthropic API errors
-Verify your API key is correct and has available credits at [console.anthropic.com](https://console.anthropic.com/).
+#### Gemini API errors
+Verify your API key is correct and has available quota at [aistudio.google.com](https://aistudio.google.com/apikey).
 
 ---
 

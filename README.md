@@ -36,7 +36,7 @@ Carbon Twin City is a full-stack web application that gamifies carbon footprint 
 ### Server
 - **Node.js** with **Express 4**
 - **MongoDB** via **Mongoose 8**
-- **Anthropic AI SDK** — AI-powered coaching
+- **Google Gemini SDK** — AI-powered coaching
 - **JWT** — Stateless authentication
 - **bcryptjs** — Password hashing
 
@@ -133,7 +133,7 @@ npm run install:all
 
 # 3. Configure environment variables
 cp server/.env.example server/.env
-# Edit server/.env with your MongoDB URI, JWT secret, and Anthropic API key
+# Edit server/.env with your MongoDB URI, JWT secret, and Gemini API key
 
 # 4. (Optional) Seed the database with sample data
 npm run seed
