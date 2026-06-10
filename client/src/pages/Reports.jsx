@@ -39,106 +39,97 @@ export default function Reports() {
   });
 
   return (
-    <div className="page-container pb-24 md:pb-8">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6 flex items-center justify-between">
+    <div className="page-container">
+      <motion.header initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="page-header">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-            📊 <span>Weekly Reports</span>
-          </h1>
-          <p className="text-gray-400 mt-1">AI-generated summaries of your progress</p>
+          <p className="eyebrow">AI Reports</p>
+          <h1 className="page-title">Weekly Reports</h1>
+          <p className="page-subtitle">Generated summaries of your progress, insights, goals, and category changes.</p>
         </div>
         <button
           onClick={generateReport}
           disabled={generating}
-          className="btn-primary text-sm disabled:opacity-50"
+          className="btn-primary shrink-0 disabled:opacity-50"
         >
-          {generating ? '⏳ Generating...' : '✨ Generate This Week\'s Report'}
+          {generating ? 'Generating...' : 'Generate Report'}
         </button>
-      </motion.div>
+      </motion.header>
 
-      {/* Loading */}
       {loading && (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="glass-card p-6 animate-pulse">
-              <div className="h-4 bg-[#1f2937] rounded w-1/4 mb-3" />
-              <div className="h-4 bg-[#1f2937] rounded w-3/4 mb-2" />
-              <div className="h-4 bg-[#1f2937] rounded w-1/2" />
+            <div key={i} className="surface animate-pulse p-6">
+              <div className="mb-3 h-4 w-1/4 rounded bg-white/10" />
+              <div className="mb-2 h-4 w-3/4 rounded bg-white/10" />
+              <div className="h-4 w-1/2 rounded bg-white/10" />
             </div>
           ))}
         </div>
       )}
 
-      {/* Reports list */}
-      {!loading && (
-        <div className="space-y-4">
-          {reports.length === 0 && (
-            <div className="text-center py-16">
-              <p className="text-4xl mb-3">📊</p>
-              <p className="text-gray-400">No reports yet. Generate your first weekly report!</p>
-            </div>
-          )}
+      {!loading && reports.length === 0 && (
+        <div className="surface p-12 text-center">
+          <p className="text-lg font-bold text-white">No reports yet</p>
+          <p className="mt-2 text-mist-500">Generate your first weekly report to build a progress archive.</p>
+        </div>
+      )}
 
+      {!loading && reports.length > 0 && (
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
           {reports.map((report, index) => (
-            <motion.div
+            <motion.article
               key={report._id}
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="glass-card p-6"
+              transition={{ delay: index * 0.04 }}
+              className="surface p-5"
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20 flex items-center justify-center">
-                    <span>📋</span>
-                  </div>
-                  <div>
-                    <p className="text-white font-medium">Week of {formatDate(report.weekStart)}</p>
-                    <p className="text-gray-500 text-xs">{report.actionsCount} actions logged</p>
-                  </div>
+              <div className="mb-4 flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-base font-bold text-white">Week of {formatDate(report.weekStart)}</p>
+                  <p className="text-sm text-mist-500">{report.actionsCount} actions logged</p>
                 </div>
-                <div className={`px-3 py-1.5 rounded-lg text-sm font-mono ${
+                <div className={`rounded-md px-3 py-1.5 text-sm font-mono font-bold ${
                   (report.totalDelta || 0) <= 0
-                    ? 'bg-green-500/10 text-green-400'
-                    : 'bg-red-500/10 text-red-400'
+                    ? 'bg-leaf-500/10 text-leaf-400'
+                    : 'bg-rose-400/10 text-rose-400'
                 }`}>
-                  {(report.totalDelta || 0) <= 0 ? '↓' : '↑'} {Math.abs(report.totalDelta || 0).toFixed(1)} kg CO₂
+                  {(report.totalDelta || 0) <= 0 ? '-' : '+'}{Math.abs(report.totalDelta || 0).toFixed(1)} kg CO2
                 </div>
               </div>
 
               {report.summary && (
-                <div className="mb-3">
-                  <p className="text-sm text-gray-300 leading-relaxed">{report.summary}</p>
-                </div>
+                <p className="mb-4 text-sm leading-relaxed text-gray-300">{report.summary}</p>
               )}
 
-              {report.insight && (
-                <div className="mb-3 p-3 rounded-lg bg-cyan-500/5 border border-cyan-500/20">
-                  <p className="text-xs font-medium text-cyan-400 uppercase tracking-wider mb-1">💡 Insight</p>
-                  <p className="text-sm text-gray-300">{report.insight}</p>
-                </div>
-              )}
+              <div className="space-y-3">
+                {report.insight && (
+                  <div className="surface-soft border-aqua-400/20 bg-aqua-400/6 p-3">
+                    <p className="meta-label text-aqua-400">Insight</p>
+                    <p className="mt-1 text-sm text-gray-300">{report.insight}</p>
+                  </div>
+                )}
 
-              {report.goal && (
-                <div className="p-3 rounded-lg bg-green-500/5 border border-green-500/20">
-                  <p className="text-xs font-medium text-green-400 uppercase tracking-wider mb-1">🎯 Goal for Next Week</p>
-                  <p className="text-sm text-gray-300">{report.goal}</p>
-                </div>
-              )}
+                {report.goal && (
+                  <div className="surface-soft border-leaf-400/20 bg-leaf-400/6 p-3">
+                    <p className="meta-label text-leaf-400">Next goal</p>
+                    <p className="mt-1 text-sm text-gray-300">{report.goal}</p>
+                  </div>
+                )}
+              </div>
 
-              {/* Category breakdown */}
               {report.categoryBreakdown && Object.keys(report.categoryBreakdown).length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-wrap gap-2">
                   {Object.entries(report.categoryBreakdown).map(([cat, delta]) => (
-                    <span key={cat} className={`px-2 py-1 rounded-md text-xs ${
-                      delta <= 0 ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
+                    <span key={cat} className={`rounded-md px-2 py-1 text-xs ${
+                      delta <= 0 ? 'bg-leaf-500/10 text-leaf-400' : 'bg-rose-400/10 text-rose-400'
                     }`}>
                       {cat}: {delta <= 0 ? '' : '+'}{delta.toFixed(1)} kg
                     </span>
                   ))}
                 </div>
               )}
-            </motion.div>
+            </motion.article>
           ))}
         </div>
       )}
