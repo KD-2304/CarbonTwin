@@ -79,6 +79,9 @@ export default function Landing() {
               src="/logo.svg"
               alt="Carbon Twin City Logo"
               className="w-10 h-10 group-hover:scale-105 transition-transform"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
             />
             <div>
               <span className="font-bold text-lg tracking-tight text-white">
@@ -172,6 +175,7 @@ export default function Landing() {
               >
                 <span>🚀</span> Get Started Now
               </Link>
+              {/* FIX: plain <a> for in-page anchor scroll — correct, not a Router link */}
               <a
                 href="#interactive-simulator"
                 className="btn-premium-secondary flex items-center gap-2"
@@ -206,70 +210,71 @@ export default function Landing() {
             </motion.div>
           </div>
 
-          {/* 3D Interactive Globe Widget */}
-          <motion.div
-            variants={itemVariants}
-            className="lg:col-span-6 flex flex-col items-center justify-center"
-            id="interactive-simulator"
-          >
-            <div className="w-full max-w-lg glass-card-premium p-6 md:p-8 relative overflow-hidden">
-              <div className="absolute top-4 left-6 flex items-center gap-2">
-                <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">
-                  LIVE ENGINE
-                </span>
-                <h3 className="text-sm font-semibold text-white/80">
-                  Globe State Simulator
-                </h3>
-              </div>
-
-              {/* 3D Canvas Box */}
-              <div className="h-[280px] md:h-[320px] w-full rounded-2xl bg-[#090b11]/80 border border-white/5 overflow-hidden my-4 relative">
-                <InteractiveEcoGlobe value={carbonVal} />
-              </div>
-
-              {/* Slider controls */}
-              <div className="space-y-4 pt-2">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-400">Simulate Footprint:</span>
-                  <span
-                    className={`font-mono font-bold text-lg ${profile.color}`}
-                  >
-                    {carbonVal.toLocaleString()} kg CO₂/yr
+          {/* FIX: id moved to plain wrapper div so anchor scroll works reliably */}
+          <div id="interactive-simulator" className="lg:col-span-6">
+            <motion.div
+              variants={itemVariants}
+              className="flex flex-col items-center justify-center"
+            >
+              <div className="w-full max-w-lg glass-card-premium p-6 md:p-8 relative overflow-hidden">
+                <div className="absolute top-4 left-6 flex items-center gap-2">
+                  <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/20">
+                    LIVE ENGINE
                   </span>
+                  <h3 className="text-sm font-semibold text-white/80">
+                    Globe State Simulator
+                  </h3>
                 </div>
 
-                <input
-                  type="range"
-                  min="1500"
-                  max="7500"
-                  step="50"
-                  value={carbonVal}
-                  onChange={(e) => setCarbonVal(Number(e.target.value))}
-                  className="w-full h-2 rounded-lg bg-gray-800 accent-emerald-500 cursor-pointer"
-                />
+                {/* 3D Canvas Box */}
+                <div className="h-[280px] md:h-[320px] w-full rounded-2xl bg-[#090b11]/80 border border-white/5 overflow-hidden my-4 relative">
+                  <InteractiveEcoGlobe value={carbonVal} />
+                </div>
 
-                {/* Simulated State Card */}
-                <motion.div
-                  key={profile.title}
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`p-4 rounded-xl border ${profile.borderColor} ${profile.bg} transition-all duration-300`}
-                >
-                  <div className="flex justify-between items-center mb-1">
-                    <h4 className={`font-bold text-sm ${profile.color}`}>
-                      {profile.title}
-                    </h4>
-                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-white/5 text-white/80">
-                      {profile.badge}
+                {/* Slider controls */}
+                <div className="space-y-4 pt-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-400">Simulate Footprint:</span>
+                    <span
+                      className={`font-mono font-bold text-lg ${profile.color}`}
+                    >
+                      {carbonVal.toLocaleString()} kg CO₂/yr
                     </span>
                   </div>
-                  <p className="text-xs text-gray-400 leading-relaxed">
-                    {profile.desc}
-                  </p>
-                </motion.div>
+
+                  <input
+                    type="range"
+                    min="1500"
+                    max="7500"
+                    step="50"
+                    value={carbonVal}
+                    onChange={(e) => setCarbonVal(Number(e.target.value))}
+                    className="w-full h-2 rounded-lg bg-gray-800 accent-emerald-500 cursor-pointer"
+                  />
+
+                  {/* Simulated State Card */}
+                  <motion.div
+                    key={profile.title}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-4 rounded-xl border ${profile.borderColor} ${profile.bg} transition-all duration-300`}
+                  >
+                    <div className="flex justify-between items-center mb-1">
+                      <h4 className={`font-bold text-sm ${profile.color}`}>
+                        {profile.title}
+                      </h4>
+                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-white/5 text-white/80">
+                        {profile.badge}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 leading-relaxed">
+                      {profile.desc}
+                    </p>
+                  </motion.div>
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </motion.div>
 
         {/* Feature Cards Grid Section */}

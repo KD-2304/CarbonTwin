@@ -13,8 +13,11 @@ function AvatarBody({ score, animating }) {
   const avatarColor = useMemo(() => new THREE.Color().setHSL(h, s, l), [h, s, l]);
   const emissiveColor = useMemo(() => new THREE.Color().setHSL(h, s, l + 0.2), [h, s, l]);
 
-  useFrame((state) => {
-    const t = state.clock.elapsedTime;
+  const timer = useRef(new THREE.Timer());
+
+  useFrame(() => {
+    timer.current.update();
+    const t = timer.current.getElapsed();
 
     // Breathing animation on torso
     if (torsoRef.current) {
@@ -163,7 +166,7 @@ function ParticleSystem({ score }) {
 
   return (
     <points ref={particlesRef}>
-      <bufferGeometry>
+      <bufferGeometry key={count}>
         <bufferAttribute
           attach="attributes-position"
           count={count}

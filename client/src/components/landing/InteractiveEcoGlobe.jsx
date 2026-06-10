@@ -130,8 +130,11 @@ function GlobeScene({ value = 3500 }) {
     return { positions: pos, pColor: color };
   }, [factor]);
 
-  useFrame((state) => {
-    const t = state.clock.elapsedTime;
+  const timer = useRef(new THREE.Timer());
+
+  useFrame(() => {
+    timer.current.update();
+    const t = timer.current.getElapsed();
     
     // Slow rotate globe
     if (globeRef.current) {

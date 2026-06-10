@@ -55,9 +55,12 @@ function SolarPanel({ position }) {
 function WindTurbine({ position }) {
   const rotorRef = useRef();
 
-  useFrame((state) => {
+  const timer = useRef(new THREE.Timer());
+
+  useFrame(() => {
+    timer.current.update();
     if (rotorRef.current) {
-      rotorRef.current.rotation.z = state.clock.elapsedTime * 3.0;
+      rotorRef.current.rotation.z = timer.current.getElapsed() * 3.0;
     }
   });
 
@@ -102,9 +105,12 @@ function WindTurbine({ position }) {
 function WarningBeacon({ position }) {
   const lightRef = useRef();
 
-  useFrame((state) => {
+  const timer = useRef(new THREE.Timer());
+
+  useFrame(() => {
+    timer.current.update();
     if (lightRef.current) {
-      lightRef.current.intensity = 0.3 + Math.sin(state.clock.elapsedTime * 8) * 0.7;
+      lightRef.current.intensity = 0.3 + Math.sin(timer.current.getElapsed() * 8) * 0.7;
     }
   });
 
@@ -278,12 +284,16 @@ function SmogParticles({ score }) {
     return pos;
   }, [density]);
 
-  useFrame((state) => {
+  const timer = useRef(new THREE.Timer());
+
+  useFrame(() => {
+    timer.current.update();
     if (!particlesRef.current || density === 0) return;
+    const t = timer.current.getElapsed();
     const arr = particlesRef.current.geometry.attributes.position.array;
     for (let i = 0; i < density; i++) {
       arr[i * 3 + 1] += 0.003;
-      arr[i * 3] += Math.sin(state.clock.elapsedTime + i) * 0.001;
+      arr[i * 3] += Math.sin(t + i) * 0.001;
       if (arr[i * 3 + 1] > 6) {
         arr[i * 3 + 1] = 1;
         arr[i * 3] = (Math.random() - 0.5) * 18;
@@ -297,7 +307,7 @@ function SmogParticles({ score }) {
 
   return (
     <points ref={particlesRef}>
-      <bufferGeometry>
+      <bufferGeometry key={density}>
         <bufferAttribute attach="attributes-position" count={density} array={positions} itemSize={3} />
       </bufferGeometry>
       <pointsMaterial color="#94a3b8" size={0.16} transparent opacity={0.3} sizeAttenuation />
@@ -363,9 +373,12 @@ function CityScene({ communityScore = 3500 }) {
     return '#f87171';
   }, [communityScore]);
 
-  useFrame((state) => {
+  const timer = useRef(new THREE.Timer());
+
+  useFrame(() => {
+    timer.current.update();
     if (groupRef.current) {
-      groupRef.current.rotation.y = state.clock.elapsedTime * 0.02;
+      groupRef.current.rotation.y = timer.current.getElapsed() * 0.02;
     }
   });
 
