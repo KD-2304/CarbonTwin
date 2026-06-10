@@ -29,11 +29,9 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="p-6 border-b border-[#1f2937]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-green-500/20">
-            C
-          </div>
+          <img src="/logo.svg" alt="Carbon Twin Logo" className="w-10 h-10" />
           <div>
-            <h1 className="text-white font-bold text-lg leading-tight">Carbon Twin</h1>
+            <h1 className="text-white font-bold text-base leading-tight">Carbon Twin</h1>
             <p className="text-gray-500 text-xs">City Dashboard</p>
           </div>
         </div>
