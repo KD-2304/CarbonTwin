@@ -21,10 +21,10 @@ export default function Sidebar() {
 
   return (
     <motion.aside
-      initial={{ x: -280 }}
+      initial={{ x: -260 }}
       animate={{ x: 0 }}
       transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-      className="hidden md:flex flex-col w-[260px] min-h-screen bg-[#0d1321] border-r border-[#1f2937] fixed left-0 top-0 z-40"
+      className="hidden md:flex flex-col w-[260px] h-screen bg-[#0d1321] border-r border-[#1f2937] shrink-0 sticky top-0"
     >
       {/* Logo */}
       <div className="p-6 border-b border-[#1f2937]">

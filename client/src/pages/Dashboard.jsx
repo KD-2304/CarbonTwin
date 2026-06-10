@@ -112,7 +112,7 @@ export default function Dashboard() {
               </h2>
               <span className="text-xs text-gray-500 px-2 py-1 rounded-lg bg-[#1f2937]">3D Interactive</span>
             </div>
-            <div className="h-[350px] rounded-xl overflow-hidden">
+            <div className="h-[350px] rounded-xl overflow-hidden relative">
               <CarbonTwin score={score} animating={scoreAnimating} />
             </div>
           </motion.div>

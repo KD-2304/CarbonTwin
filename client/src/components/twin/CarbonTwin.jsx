@@ -51,69 +51,71 @@ function AvatarBody({ score, animating }) {
       {/* Head */}
       <mesh position={[0, 1.65, 0]}>
         <sphereGeometry args={[0.25, 16, 16]} />
-        <meshStandardMaterial color={avatarColor} emissive={emissiveColor} emissiveIntensity={0.3} roughness={0.4} metalness={0.2} />
+        <meshStandardMaterial color={avatarColor} emissive={emissiveColor} emissiveIntensity={0.25} roughness={0.15} metalness={0.8} />
       </mesh>
 
-      {/* Eyes */}
-      <mesh position={[0.08, 1.7, 0.22]}>
-        <sphereGeometry args={[0.04, 8, 8]} />
-        <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.5} />
-      </mesh>
-      <mesh position={[-0.08, 1.7, 0.22]}>
-        <sphereGeometry args={[0.04, 8, 8]} />
-        <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.5} />
+      {/* Visor (Replaces separate eyes for a premium sci-fi aesthetic) */}
+      <mesh position={[0, 1.7, 0.15]}>
+        <boxGeometry args={[0.32, 0.07, 0.18]} />
+        <meshStandardMaterial color="#0b0f19" emissive={emissiveColor} emissiveIntensity={1.8} roughness={0.1} metalness={0.95} />
       </mesh>
 
       {/* Neck */}
       <mesh position={[0, 1.35, 0]}>
         <cylinderGeometry args={[0.08, 0.1, 0.15, 8]} />
-        <meshStandardMaterial color={avatarColor} roughness={0.5} />
+        <meshStandardMaterial color={avatarColor} roughness={0.3} metalness={0.6} />
       </mesh>
 
       {/* Torso */}
       <mesh ref={torsoRef} position={[0, 0.95, 0]}>
         <boxGeometry args={[0.55, 0.65, 0.3]} />
-        <meshStandardMaterial color={avatarColor} emissive={emissiveColor} emissiveIntensity={0.15} roughness={0.3} metalness={0.1} />
+        <meshStandardMaterial color={avatarColor} emissive={emissiveColor} emissiveIntensity={0.15} roughness={0.15} metalness={0.8} />
+      </mesh>
+
+      {/* Glowing chest core */}
+      <mesh position={[0, 0.95, 0.16]} scale={0.05}>
+        <sphereGeometry args={[1, 12, 12]} />
+        <meshBasicMaterial color={emissiveColor} />
       </mesh>
 
       {/* Left arm */}
       <mesh position={[-0.4, 1.0, 0]} rotation={[0, 0, 0.15]}>
         <cylinderGeometry args={[0.06, 0.07, 0.55, 8]} />
-        <meshStandardMaterial color={avatarColor} roughness={0.5} />
+        <meshStandardMaterial color={avatarColor} roughness={0.25} metalness={0.7} />
       </mesh>
 
       {/* Right arm */}
       <mesh position={[0.4, 1.0, 0]} rotation={[0, 0, -0.15]}>
         <cylinderGeometry args={[0.06, 0.07, 0.55, 8]} />
-        <meshStandardMaterial color={avatarColor} roughness={0.5} />
+        <meshStandardMaterial color={avatarColor} roughness={0.25} metalness={0.7} />
       </mesh>
 
       {/* Hips */}
       <mesh position={[0, 0.55, 0]}>
         <boxGeometry args={[0.45, 0.2, 0.28]} />
-        <meshStandardMaterial color={avatarColor} roughness={0.5} />
+        <meshStandardMaterial color={avatarColor} roughness={0.25} metalness={0.7} />
       </mesh>
 
       {/* Left leg */}
       <mesh position={[-0.13, 0.2, 0]}>
         <cylinderGeometry args={[0.08, 0.07, 0.55, 8]} />
-        <meshStandardMaterial color={avatarColor} roughness={0.5} />
+        <meshStandardMaterial color={avatarColor} roughness={0.2} metalness={0.7} />
       </mesh>
 
       {/* Right leg */}
       <mesh position={[0.13, 0.2, 0]}>
         <cylinderGeometry args={[0.08, 0.07, 0.55, 8]} />
-        <meshStandardMaterial color={avatarColor} roughness={0.5} />
+        <meshStandardMaterial color={avatarColor} roughness={0.2} metalness={0.7} />
       </mesh>
 
       {/* Feet */}
       <mesh position={[-0.13, -0.08, 0.04]}>
         <boxGeometry args={[0.12, 0.06, 0.2]} />
-        <meshStandardMaterial color={avatarColor} roughness={0.6} />
+        <meshStandardMaterial color={avatarColor} roughness={0.3} metalness={0.6} />
       </mesh>
       <mesh position={[0.13, -0.08, 0.04]}>
         <boxGeometry args={[0.12, 0.06, 0.2]} />
-        <meshStandardMaterial color={avatarColor} roughness={0.6} />
+        <meshStandardMaterial color={avatarColor} roughness={0.3} metalness={0.6} />
       </mesh>
     </group>
   );
@@ -182,30 +184,41 @@ function ParticleSystem({ score }) {
 
 // ─── ENVIRONMENT ────────────────────────────────────────────────
 function Environment({ score }) {
-  const skyColor = useMemo(() => {
-    if (score < 2000) return '#1a3a5c';    // Clean blue
-    if (score < 3000) return '#2a3a4c';    // Slight haze
-    if (score < 4000) return '#3a3530';    // Smoggy
-    return '#2a2018';                       // Heavy smog
+  const { skyColor, avatarHSL } = useMemo(() => {
+    const sColor = score < 2000 ? '#070b13' :
+                   score < 3000 ? '#121824' :
+                   score < 4000 ? '#221b14' : '#180d0d'; // Clean to Polluted backgrounds
+    const { h, s, l } = getAvatarHSL(score);
+    return { skyColor: sColor, avatarHSL: new THREE.Color().setHSL(h, s, l) };
   }, [score]);
 
   return (
     <>
       <color attach="background" args={[skyColor]} />
-      <fog attach="fog" args={[skyColor, 5, 15]} />
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[5, 8, 5]} intensity={0.8} color="#ffffff" />
-      <directionalLight position={[-3, 4, -3]} intensity={0.3} color={score < 3000 ? '#88ccff' : '#aa8866'} />
-      <pointLight position={[0, 2, 2]} intensity={0.5} color={score < 3000 ? '#10b981' : '#f59e0b'} distance={5} />
+      <fog attach="fog" args={[skyColor, 5, 12]} />
+      <ambientLight intensity={0.45} />
+      <directionalLight position={[5, 8, 5]} intensity={1.2} color="#ffffff" />
+      <directionalLight position={[-5, 4, -5]} intensity={0.3} color={score < 3000 ? '#38bdf8' : '#ef4444'} />
+      <pointLight position={[0, 1.8, 1.5]} intensity={0.8} color={score < 3000 ? '#10b981' : '#f59e0b'} distance={4} />
 
       {/* Ground plane */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.6, 0]}>
-        <circleGeometry args={[3, 32]} />
+        <circleGeometry args={[2.5, 32]} />
         <meshStandardMaterial
-          color={score < 2500 ? '#1a2a1a' : '#1a1a1a'}
+          color={score < 2500 ? '#0b1610' : '#111113'}
           roughness={0.9}
-          metalness={0}
+          metalness={0.1}
         />
+      </mesh>
+
+      {/* High-tech scanning grid floor */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.59, 0]}>
+        <ringGeometry args={[1.0, 1.05, 32]} />
+        <meshBasicMaterial color={avatarHSL} transparent opacity={0.35} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.595, 0]}>
+        <circleGeometry args={[1.0, 16]} />
+        <meshBasicMaterial color={avatarHSL} wireframe transparent opacity={0.08} />
       </mesh>
     </>
   );
@@ -214,7 +227,7 @@ function Environment({ score }) {
 // ─── MAIN COMPONENT ────────────────────────────────────────────
 export default function CarbonTwin({ score = 3000, animating = false }) {
   return (
-    <div className="w-full h-full min-h-[350px] rounded-2xl overflow-hidden">
+    <div className="w-full h-full min-h-[350px] rounded-2xl overflow-hidden relative">
       <Canvas camera={{ position: [0, 1.2, 3.5], fov: 45 }}>
         <Environment score={score} />
         <AvatarBody score={score} animating={animating} />

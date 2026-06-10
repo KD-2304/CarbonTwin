@@ -3,23 +3,21 @@ import { render, screen } from '@testing-library/react';
 import App from '../App.jsx';
 
 // Mock framer-motion to avoid animation-related test issues
-vi.mock('framer-motion', () => ({
-  AnimatePresence: ({ children }) => children,
-  motion: {
-    div: ({ children, ...props }) => {
-      const { initial, animate, exit, transition, whileHover, whileTap, variants, ...domProps } = props;
-      return <div {...domProps}>{children}</div>;
-    },
-    p: ({ children, ...props }) => {
-      const { initial, animate, exit, transition, ...domProps } = props;
-      return <p {...domProps}>{children}</p>;
-    },
-    span: ({ children, ...props }) => {
-      const { initial, animate, exit, transition, ...domProps } = props;
-      return <span {...domProps}>{children}</span>;
-    },
-  },
-}));
+vi.mock('framer-motion', () => {
+  const motionMock = new Proxy({}, {
+    get: (target, prop) => {
+      return ({ children, ...props }) => {
+        const { initial, animate, exit, transition, whileHover, whileTap, variants, ...domProps } = props;
+        const Component = prop;
+        return <Component {...domProps}>{children}</Component>;
+      };
+    }
+  });
+  return {
+    AnimatePresence: ({ children }) => children,
+    motion: motionMock
+  };
+});
 
 // Mock Three.js components to avoid canvas issues in JSDOM
 vi.mock('@react-three/fiber', () => ({
@@ -58,8 +56,7 @@ describe('App Component', () => {
   it('does not show sidebar or bottom nav when not authenticated', () => {
     render(<App />);
 
-    // Navigation elements should not be present for unauthenticated users
-    // The sidebar component with ml-[260px] offset won't render
-    expect(document.querySelector('[class*="md:ml-"]')).toBeNull();
+    // Navigation sidebar element should not be present for unauthenticated users
+    expect(document.querySelector('aside')).toBeNull();
   });
 });

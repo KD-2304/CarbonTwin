@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ScoreProvider } from './context/ScoreContext';
@@ -6,6 +6,7 @@ import ProtectedRoute from './components/ui/ProtectedRoute';
 import Sidebar from './components/ui/Sidebar';
 import BottomNav from './components/ui/BottomNav';
 
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Onboarding from './pages/Onboarding';
@@ -17,17 +18,19 @@ import Reports from './pages/Reports';
 
 function AppLayout({ children }) {
   const { user } = useAuth();
+  const location = useLocation();
 
-  // Don't show nav on auth/onboarding pages
-  if (!user || !user.onboardingComplete) {
+  // Don't show nav on auth/onboarding/landing pages
+  const isLandingPage = location.pathname === '/';
+  if (!user || !user.onboardingComplete || isLandingPage) {
     return <>{children}</>;
   }
 
   return (
     <ScoreProvider>
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen bg-[#0a0f1e] relative">
         <Sidebar />
-        <main className="flex-1 md:ml-[260px]">
+        <main className="flex-1 overflow-x-hidden relative">
           {children}
         </main>
         <BottomNav />
@@ -55,6 +58,7 @@ function AppRoutes() {
       <AnimatePresence mode="wait">
         <Routes>
           {/* Public routes */}
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
           <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
 
@@ -85,7 +89,7 @@ function AppRoutes() {
           } />
 
           {/* Default redirect */}
-          <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} />} />
+          <Route path="*" element={<Navigate to={user ? '/dashboard' : '/'} />} />
         </Routes>
       </AnimatePresence>
     </AppLayout>
@@ -101,3 +105,4 @@ export default function App() {
     </BrowserRouter>
   );
 }
+
