@@ -12,7 +12,7 @@ Carbon Twin City is a full-stack web application that gamifies carbon footprint 
 | --- | --- |
 | **Dashboard** | Real-time overview of your carbon score, daily actions, and weekly trends |
 | **3D Twin City** | Interactive Three.js city that reflects the community's carbon footprint |
-| **AI Coach** | Anthropic Claude-powered personalized sustainability tips |
+| **AI Coach** | Google Gemini-powered personalized sustainability tips |
 | **Action Logger** | Log daily eco-actions (transport, diet, energy) and earn points |
 | **Simulator** | "What-if" scenario simulator to see the impact of lifestyle changes |
 | **Leaderboard** | Community rankings to encourage friendly competition |
@@ -75,6 +75,8 @@ carbon-twin-city/
 │   │   │   ├── Reports.jsx
 │   │   │   └── Simulator.jsx
 │   │   ├── utils/             # Emission factors & score calculator
+│   │   ├── __tests__/         # Component tests (co-located for React deps)
+│   │   │   └── App.test.jsx
 │   │   ├── App.jsx
 │   │   ├── main.jsx
 │   │   └── index.css
@@ -97,7 +99,7 @@ carbon-twin-city/
 │   │   ├── simulator.js       # What-if scenario API
 │   │   └── user.js            # User profile management
 │   ├── services/
-│   │   ├── aiService.js       # Anthropic Claude integration
+│   │   ├── aiService.js       # Google Gemini integration
 │   │   └── scoreService.js    # Carbon score computation
 │   ├── index.js               # Server entry point
 │   ├── seed.js                # Database seed script
@@ -105,11 +107,12 @@ carbon-twin-city/
 │   └── package.json
 │
 ├── tests/                     # Test suite (see SETUP.md for details)
-│   ├── client/                # Frontend tests
-│   │   └── App.test.jsx
+│   ├── client/                # Frontend utility tests
+│   │   └── scoreCalculator.test.js
 │   ├── server/                # Backend tests
 │   │   ├── auth.test.js
-│   │   └── health.test.js
+│   │   ├── health.test.js
+│   │   └── scoreService.test.js
 │   └── README.md              # Test documentation
 │
 ├── package.json               # Root workspace (concurrently)

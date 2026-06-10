@@ -8,12 +8,19 @@ const projectRoot = path.resolve(__dirname, '..');
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    fs: {
+      allow: [projectRoot],
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,
-    root: projectRoot,
-    include: ['tests/client/**/*.test.{js,jsx}'],
-    setupFiles: [path.resolve(__dirname, 'vitest.setup.js')],
+    include: [
+      'src/__tests__/**/*.test.{js,jsx}',
+      '../tests/client/**/*.test.{js,jsx}',
+    ],
+    setupFiles: ['./vitest.setup.js'],
     css: true,
   },
   resolve: {

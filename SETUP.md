@@ -59,7 +59,7 @@ npm run install:all
 
 This runs `npm install` in:
 - **Root** (`./`) — installs `concurrently` for running both servers
-- **Server** (`./server`) — installs Express, Mongoose, JWT, Anthropic SDK, etc.
+- **Server** (`./server`) — installs Express, Mongoose, JWT, Google Gemini SDK, etc.
 - **Client** (`./client`) — installs React, Vite, Three.js, Tailwind CSS, etc.
 
 > **Note:** Each folder has its own `node_modules/`. The root `node_modules/` contains only `concurrently` and is required for `npm run dev`. Do **not** delete it.

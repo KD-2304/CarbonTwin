@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import App from '@src/App.jsx';
+import App from '../App.jsx';
 
 // Mock framer-motion to avoid animation-related test issues
 vi.mock('framer-motion', () => ({
@@ -59,9 +59,7 @@ describe('App Component', () => {
     render(<App />);
 
     // Navigation elements should not be present for unauthenticated users
-    const sidebar = screen.queryByText(/dashboard/i);
-    // Login page may show "Dashboard" text in some context,
-    // but the sidebar component itself won't render
+    // The sidebar component with ml-[260px] offset won't render
     expect(document.querySelector('[class*="md:ml-"]')).toBeNull();
   });
 });

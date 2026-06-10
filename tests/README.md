@@ -8,14 +8,16 @@ This directory contains the test suite for the Carbon Twin City application. Tes
 
 ```
 tests/
-├── client/                    # Frontend tests
-│   ├── App.test.jsx           # App component rendering & routing
+├── client/                    # Frontend utility tests
 │   └── scoreCalculator.test.js # Score calculation utility tests
 ├── server/                    # Backend tests
 │   ├── auth.test.js           # Authentication endpoints (register, login)
 │   ├── health.test.js         # Health check endpoint
 │   └── scoreService.test.js   # Score service business logic tests
 └── README.md                  # ← You are here
+
+client/src/__tests__/          # Frontend component tests (co-located for React dep resolution)
+└── App.test.jsx               # App component rendering tests
 ```
 
 ---
@@ -84,7 +86,7 @@ npm run test:watch
 
 | Test File | What It Covers |
 | --- | --- |
-| `App.test.jsx` | App component renders without crashing |
+| `App.test.jsx` (in `client/src/__tests__/`) | App component renders without crashing |
 | | Shows loading spinner initially |
 | | Redirects unauthenticated users to login |
 | `scoreCalculator.test.js` | `calculateBaselineScore()` — client-side baseline calculation |
