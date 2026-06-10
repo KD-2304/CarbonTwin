@@ -12,7 +12,7 @@
     "build": "cd client && npm run build",
     "test": "npm run test:server && npm run test:client",
     "test:server": "npx jest --config tests/jest.config.js --forceExit --detectOpenHandles",
-    "test:client": "cd client && npx vitest run --config ../tests/vitest.config.js",
+    "test:client": "cd client && npx vitest run --config vitest.config.js",
     "test:watch": "npx jest --config tests/jest.config.js --watch"
   },
   "devDependencies": {
