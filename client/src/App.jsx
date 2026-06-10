@@ -28,9 +28,9 @@ function AppLayout({ children }) {
 
   return (
     <ScoreProvider>
-      <div className="flex min-h-screen bg-[#0a0f1e] relative">
+      <div className="app-shell flex relative">
         <Sidebar />
-        <main className="flex-1 overflow-x-hidden relative">
+        <main className="app-main overflow-x-hidden relative">
           {children}
         </main>
         <BottomNav />
@@ -105,4 +105,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-

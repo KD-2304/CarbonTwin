@@ -1,31 +1,33 @@
 import { NavLink } from 'react-router-dom';
 
 const navItems = [
-  { path: '/dashboard', label: 'Home', icon: '🌿' },
-  { path: '/city', label: 'City', icon: '🏙️' },
-  { path: '/leaderboard', label: 'Rank', icon: '🏆' },
-  { path: '/simulator', label: 'What-If', icon: '🔮' },
-  { path: '/reports', label: 'Reports', icon: '📊' },
+  { path: '/dashboard', label: 'Home', icon: 'D' },
+  { path: '/city', label: 'City', icon: 'C' },
+  { path: '/leaderboard', label: 'Rank', icon: 'L' },
+  { path: '/simulator', label: 'Sim', icon: 'S' },
+  { path: '/reports', label: 'Reports', icon: 'R' },
 ];
 
 export default function BottomNav() {
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0d1321]/95 backdrop-blur-lg border-t border-[#1f2937]">
-      <div className="flex items-center justify-around py-2 px-1">
-        {navItems.map(item => (
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#07110f]/95 px-2 pb-2 pt-2 backdrop-blur-xl md:hidden">
+      <div className="grid grid-cols-5 gap-1">
+        {navItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-xs transition-all ${
+              `flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-semibold transition-all ${
                 isActive
-                  ? 'text-green-400'
-                  : 'text-gray-500 hover:text-gray-300'
+                  ? 'bg-leaf-500/12 text-leaf-400'
+                  : 'text-mist-500 hover:bg-white/[0.04] hover:text-white'
               }`
             }
           >
-            <span className="text-xl">{item.icon}</span>
-            <span className="font-medium">{item.label}</span>
+            <span className="flex h-6 w-6 items-center justify-center rounded-md border border-white/10 text-[10px] font-black">
+              {item.icon}
+            </span>
+            <span>{item.label}</span>
           </NavLink>
         ))}
       </div>
