@@ -1,22 +1,23 @@
 /**
- * AI Service — Claude API integration for personalized carbon coaching
+ * AI Service — Google Gemini API integration for personalized carbon coaching
  */
 
-let Anthropic;
+let GoogleGenerativeAI;
 try {
-  Anthropic = require('@anthropic-ai/sdk');
+  ({ GoogleGenerativeAI } = require('@google/generative-ai'));
 } catch (e) {
-  console.warn('Anthropic SDK not installed. AI features will be disabled.');
+  console.warn('Google Generative AI SDK not installed. AI features will be disabled.');
 }
 
 function getClient() {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.GEMINI_API_KEY) {
     return null;
   }
   try {
-    return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    return genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
   } catch (e) {
-    console.error('Failed to initialize Anthropic client:', e.message);
+    console.error('Failed to initialize Gemini client:', e.message);
     return null;
   }
 }
@@ -25,8 +26,8 @@ function getClient() {
  * Generate a personalized weekly insight based on user data
  */
 async function generateWeeklyInsight(userData) {
-  const client = getClient();
-  if (!client) {
+  const model = getClient();
+  if (!model) {
     return getFallbackInsight(userData);
   }
 
@@ -50,7 +51,7 @@ GLOBAL CONTEXT:
 - World average: 4,000 kg CO₂/year
 - Paris Agreement target: 2,000 kg CO₂/year
 
-Respond in this EXACT JSON format:
+Respond in this EXACT JSON format (no markdown, no code fences, just raw JSON):
 {
   "insight": "One key insight about their biggest emission source (2-3 sentences, specific to their data)",
   "actions": [
@@ -64,13 +65,8 @@ Respond in this EXACT JSON format:
 Use their ACTUAL numbers. Be specific, not generic. Reference their exact scores.`;
 
   try {
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 600,
-      messages: [{ role: 'user', content: prompt }]
-    });
-
-    const text = response.content[0].text;
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
     // Extract JSON from response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
@@ -78,7 +74,7 @@ Use their ACTUAL numbers. Be specific, not generic. Reference their exact scores
     }
     return getFallbackInsight(userData);
   } catch (error) {
-    console.error('Claude API error (weekly insight):', error.message);
+    console.error('Gemini API error (weekly insight):', error.message);
     return getFallbackInsight(userData);
   }
 }
@@ -87,10 +83,10 @@ Use their ACTUAL numbers. Be specific, not generic. Reference their exact scores
  * Handle free-form chat questions with personalized context
  */
 async function handleChatMessage(message, userData) {
-  const client = getClient();
-  if (!client) {
+  const model = getClient();
+  if (!model) {
     return {
-      response: "AI Coach is currently unavailable. Please set your ANTHROPIC_API_KEY in the server environment to enable personalized coaching."
+      response: "AI Coach is currently unavailable. Please set your GEMINI_API_KEY in the server environment to enable personalized coaching."
     };
   }
 
@@ -112,19 +108,15 @@ RULES:
 - Be specific with suggestions — include estimated kg CO₂ savings
 - Be encouraging but honest
 - Keep responses concise (2-4 paragraphs max)
-- Use emoji sparingly for friendliness`;
+- Use emoji sparingly for friendliness
+
+USER QUESTION: ${message}`;
 
   try {
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 500,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: message }]
-    });
-
-    return { response: response.content[0].text };
+    const result = await model.generateContent(systemPrompt);
+    return { response: result.response.text() };
   } catch (error) {
-    console.error('Claude API error (chat):', error.message);
+    console.error('Gemini API error (chat):', error.message);
     return { response: "I'm having trouble connecting right now. Please try again in a moment." };
   }
 }
@@ -133,7 +125,7 @@ RULES:
  * Generate a full weekly report
  */
 async function generateWeeklyReport(userData, weekActions) {
-  const client = getClient();
+  const model = getClient();
 
   const totalDelta = weekActions.reduce((sum, a) => sum + a.co2Delta, 0);
   const categoryTotals = {};
@@ -141,7 +133,7 @@ async function generateWeeklyReport(userData, weekActions) {
     categoryTotals[a.category] = (categoryTotals[a.category] || 0) + a.co2Delta;
   });
 
-  if (!client) {
+  if (!model) {
     return {
       summary: `This week you logged ${weekActions.length} actions with a net impact of ${totalDelta > 0 ? '+' : ''}${totalDelta.toFixed(1)} kg CO₂.`,
       insight: `Your biggest impact area was ${Object.entries(categoryTotals).sort((a, b) => a[1] - b[1])[0]?.[0] || 'unknown'}.`,
@@ -165,7 +157,7 @@ THIS WEEK'S ACTIVITY:
 - By category: ${JSON.stringify(categoryTotals)}
 - Actions: ${weekActions.map(a => `${a.action} (${a.co2Delta}kg)`).join(', ')}
 
-Respond in this EXACT JSON format:
+Respond in this EXACT JSON format (no markdown, no code fences, just raw JSON):
 {
   "summary": "2-3 sentence summary of the week's performance",
   "insight": "Key insight about what improved most or needs work",
@@ -173,13 +165,8 @@ Respond in this EXACT JSON format:
 }`;
 
   try {
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 400,
-      messages: [{ role: 'user', content: prompt }]
-    });
-
-    const text = response.content[0].text;
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
 
@@ -192,7 +179,7 @@ Respond in this EXACT JSON format:
       categoryBreakdown: categoryTotals
     };
   } catch (error) {
-    console.error('Claude API error (weekly report):', error.message);
+    console.error('Gemini API error (weekly report):', error.message);
     return {
       summary: `This week you logged ${weekActions.length} actions with a net impact of ${totalDelta.toFixed(1)} kg CO₂.`,
       insight: '',

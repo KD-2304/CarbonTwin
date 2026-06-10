@@ -6,7 +6,7 @@ import {
   getAvatarHSL,
   getEquivalencies,
   formatNumber
-} from '../../client/src/utils/scoreCalculator.js';
+} from '@src/utils/scoreCalculator.js';
 
 // ─── calculateBaselineScore ──────────────────────────────────
 
