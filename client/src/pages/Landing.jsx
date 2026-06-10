@@ -75,9 +75,7 @@ export default function Landing() {
       <header className="border-b border-white/5 relative z-10 backdrop-blur-md bg-[#0a0f1e]/60 sticky top-0">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-cyan-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-green-500/20 group-hover:scale-105 transition-transform">
-              🌍
-            </div>
+            <img src="/logo.svg" alt="Carbon Twin City Logo" className="w-10 h-10 group-hover:scale-105 transition-transform" />
             <div>
               <span className="font-bold text-lg tracking-tight text-white">Carbon Twin City</span>
               <span className="block text-[10px] text-cyan-400 tracking-wider font-mono">ECO-SIMULATOR</span>
