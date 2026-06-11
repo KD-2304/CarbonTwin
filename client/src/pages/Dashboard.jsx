@@ -171,7 +171,7 @@ export default function Dashboard() {
               </span>
             </div>
             <div className="h-[380px] md:h-[460px]">
-              <CarbonTwin score={score} animating={scoreAnimating} />
+              <CarbonTwin score={score} animating={scoreAnimating} streak={streak} />
             </div>
           </motion.section>
 
