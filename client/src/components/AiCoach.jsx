@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { aiAPI } from '../api/axios';
+import { Bot, Send, Sparkles } from 'lucide-react';
 
 export default function AiCoach() {
   const [insight, setInsight] = useState(null);
@@ -58,33 +59,38 @@ export default function AiCoach() {
 
   return (
     <div className="surface flex max-h-[620px] flex-col p-5">
-      <div className="mb-4">
-        <p className="section-title">AI Carbon Coach</p>
-        <p className="text-sm text-mist-500">Weekly insight plus quick climate coaching.</p>
+      <div className="mb-4 flex items-center gap-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-400/10 border border-violet-400/15">
+          <Bot size={14} className="text-violet-400" />
+        </div>
+        <div>
+          <p className="section-title text-sm">AI Carbon Coach</p>
+          <p className="text-[11px] text-sand-500">Weekly insight plus quick climate coaching.</p>
+        </div>
       </div>
 
       {insightLoading ? (
-        <div className="surface-soft mb-4 animate-pulse p-4">
-          <div className="mb-2 h-4 w-3/4 rounded bg-leaf-500/10" />
-          <div className="mb-2 h-4 w-1/2 rounded bg-leaf-500/10" />
-          <div className="h-4 w-2/3 rounded bg-leaf-500/10" />
+        <div className="surface-soft mb-4 animate-shimmer p-4 rounded-xl">
+          <div className="mb-2 h-4 w-3/4 rounded bg-sage-400/8" />
+          <div className="mb-2 h-4 w-1/2 rounded bg-sage-400/8" />
+          <div className="h-4 w-2/3 rounded bg-sage-400/8" />
         </div>
       ) : insight && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="surface-soft mb-4 border-leaf-500/20 bg-leaf-500/6 p-4"
+          className="surface-soft mb-4 border-l-2 border-sage-400 bg-sage-400/5 p-4 rounded-xl"
         >
-          <p className="text-sm leading-relaxed text-gray-300">{insight.insight}</p>
+          <p className="text-sm leading-relaxed text-sand-300">{insight.insight}</p>
 
           {insight.actions?.length > 0 && (
             <div className="mt-3 space-y-2">
-              <p className="meta-label text-leaf-400">This week</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-sage-400">This week</p>
               {insight.actions.map((a, i) => (
                 <div key={i} className="flex items-start gap-2 text-sm">
-                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-leaf-400" />
-                  <span className="text-gray-300">{a.action}
-                    <span className="ml-1 text-xs text-leaf-400">({a.saving})</span>
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-sage-400" />
+                  <span className="text-sand-300">{a.action}
+                    <span className="ml-1 text-xs text-sage-400 font-medium">({a.saving})</span>
                   </span>
                 </div>
               ))}
@@ -92,7 +98,10 @@ export default function AiCoach() {
           )}
 
           {insight.encouragement && (
-            <p className="mt-3 text-sm text-leaf-400/85">{insight.encouragement}</p>
+            <p className="mt-3 text-sm text-sage-400/80 flex items-start gap-1.5">
+              <Sparkles size={12} className="mt-0.5 shrink-0" />
+              {insight.encouragement}
+            </p>
           )}
         </motion.div>
       )}
@@ -100,13 +109,13 @@ export default function AiCoach() {
       <div className="mb-3 min-h-[130px] flex-1 space-y-3 overflow-y-auto pr-1">
         {messages.length === 0 && (
           <div className="py-2">
-            <p className="text-sm text-mist-500">Start with one of these prompts.</p>
+            <p className="text-sm text-sand-500">Start with one of these prompts.</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {['Reduce transport emissions', 'Review my diet score', 'Find my biggest change'].map((q) => (
                 <button
                   key={q}
                   onClick={() => setInput(q)}
-                  className="rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-left text-xs text-gray-300 transition-colors hover:border-leaf-400/30 hover:text-leaf-400"
+                  className="rounded-lg border border-sand-100/6 bg-sand-100/[0.02] px-2.5 py-1.5 text-left text-xs text-sand-400 transition-all hover:border-sage-400/20 hover:text-sage-400 hover:bg-sage-400/5"
                 >
                   {q}
                 </button>
@@ -122,10 +131,10 @@ export default function AiCoach() {
             animate={{ opacity: 1, y: 0 }}
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <div className={`max-w-[86%] rounded-lg px-3 py-2 text-sm leading-relaxed ${
+            <div className={`max-w-[86%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
               msg.role === 'user'
-                ? 'bg-leaf-500/18 text-leaf-50'
-                : 'bg-[#07110f]/70 text-gray-300'
+                ? 'bg-sage-400/12 text-sand-200 rounded-br-md'
+                : 'bg-base-800/70 text-sand-300 rounded-bl-md'
             }`}>
               {msg.content}
             </div>
@@ -134,11 +143,11 @@ export default function AiCoach() {
 
         {loading && (
           <div className="flex justify-start">
-            <div className="rounded-lg bg-[#07110f]/70 px-4 py-2">
+            <div className="rounded-2xl rounded-bl-md bg-base-800/70 px-4 py-3">
               <div className="flex gap-1.5">
-                <div className="h-2 w-2 animate-bounce rounded-full bg-leaf-400" style={{ animationDelay: '0ms' }} />
-                <div className="h-2 w-2 animate-bounce rounded-full bg-leaf-400" style={{ animationDelay: '150ms' }} />
-                <div className="h-2 w-2 animate-bounce rounded-full bg-leaf-400" style={{ animationDelay: '300ms' }} />
+                <div className="h-2 w-2 animate-bounce rounded-full bg-sage-400" style={{ animationDelay: '0ms' }} />
+                <div className="h-2 w-2 animate-bounce rounded-full bg-sage-400" style={{ animationDelay: '150ms' }} />
+                <div className="h-2 w-2 animate-bounce rounded-full bg-sage-400" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           </div>
@@ -158,9 +167,9 @@ export default function AiCoach() {
         <button
           type="submit"
           disabled={loading || !input.trim()}
-          className="btn-primary px-4 py-2.5 disabled:opacity-40"
+          className="btn-primary px-3.5 py-2.5 disabled:opacity-30"
         >
-          Send
+          <Send size={14} />
         </button>
       </form>
     </div>

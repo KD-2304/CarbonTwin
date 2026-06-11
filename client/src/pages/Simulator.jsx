@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import CarbonTwin from '../components/twin/CarbonTwin';
 import AnimatedNumber from '../components/ui/AnimatedNumber';
 import { calculateBaselineScore, getScoreColor, getEquivalencies, formatNumber } from '../utils/scoreCalculator';
+import { TreePine, Car, Smartphone, Droplets, TrendingDown, Zap } from 'lucide-react';
 
 const sliderConfig = [
   { id: 'goVegetarian', label: 'Go Vegetarian', description: 'Switch from your current diet to vegetarian', field: 'diet', newValue: 'vegetarian' },
@@ -13,6 +14,13 @@ const sliderConfig = [
   { id: 'switchToRenewable', label: 'Switch to renewable energy', description: 'Power your home with solar, wind, or hydro', field: 'energy', newValue: 'renewable' },
   { id: 'reduceShoppingToMinimal', label: 'Minimize shopping', description: 'Buy only essentials, choose second-hand', field: 'shopping', newValue: 'minimal' },
 ];
+
+const equivIcons = {
+  'Trees planted': TreePine,
+  'Km not driven': Car,
+  'Phone charges': Smartphone,
+  '8-min showers': Droplets,
+};
 
 export default function Simulator() {
   const { user } = useAuth();
@@ -65,18 +73,18 @@ export default function Simulator() {
           <h1 className="page-title">What-If Simulator</h1>
           <p className="page-subtitle">Toggle lifestyle changes and see the projected annual score update instantly.</p>
         </div>
-        <div className="surface-soft px-4 py-3 text-right">
+        <div className="surface-soft px-4 py-3 text-right rounded-xl">
           <p className="meta-label">Active scenarios</p>
-          <p className="text-sm font-semibold text-white">{activeCount} selected</p>
+          <p className="text-sm font-semibold text-sand-100 mt-1">{activeCount} selected</p>
         </div>
       </motion.header>
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_400px]">
         <section className="space-y-5">
           <div className="surface overflow-hidden">
-            <div className="border-b border-white/8 px-5 py-4">
+            <div className="border-b border-sand-100/5 px-5 py-4">
               <p className="section-title">Lifestyle Switches</p>
-              <p className="text-sm text-mist-500">Choose the changes you want to simulate. Nothing is saved here.</p>
+              <p className="text-sm text-sand-500">Choose the changes you want to simulate. Nothing is saved here.</p>
             </div>
             <div className="grid grid-cols-1 gap-3 p-5 md:grid-cols-2">
               {sliderConfig.map((item, index) => {
@@ -88,22 +96,22 @@ export default function Simulator() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.04 }}
                     onClick={() => toggle(item.id)}
-                    className={`flex min-h-[124px] items-start justify-between gap-4 rounded-lg border p-4 text-left transition-all ${
+                    className={`flex min-h-[120px] items-start justify-between gap-4 rounded-xl border p-4 text-left transition-all ${
                       isActive
-                        ? 'border-leaf-400/40 bg-leaf-400/8'
-                        : 'border-white/10 bg-white/[0.025] hover:border-white/20 hover:bg-white/[0.04]'
+                        ? 'border-sage-400/30 bg-sage-400/8 shadow-lg shadow-sage-400/5'
+                        : 'border-sand-100/6 bg-sand-100/[0.02] hover:border-sand-100/12 hover:bg-sand-100/[0.04]'
                     }`}
                   >
                     <div>
-                      <p className="text-sm font-bold text-white">{item.label}</p>
-                      <p className="mt-2 text-sm leading-relaxed text-mist-500">{item.description}</p>
+                      <p className="text-sm font-bold text-sand-100">{item.label}</p>
+                      <p className="mt-2 text-sm leading-relaxed text-sand-500">{item.description}</p>
                     </div>
                     <span className={`mt-1 flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition-colors ${
-                      isActive ? 'bg-leaf-500' : 'bg-ink-700'
+                      isActive ? 'bg-sage-400' : 'bg-base-700'
                     }`}>
                       <motion.span
                         animate={{ x: isActive ? 20 : 0 }}
-                        className="h-5 w-5 rounded-full bg-white shadow"
+                        className="h-5 w-5 rounded-full bg-white shadow-md"
                       />
                     </span>
                   </motion.button>
@@ -122,21 +130,28 @@ export default function Simulator() {
                     ['Km not driven', formatNumber(equivalencies.kmNotDriven)],
                     ['Phone charges', formatNumber(equivalencies.smartphonesCharged)],
                     ['8-min showers', formatNumber(equivalencies.showers)],
-                  ].map(([label, value]) => (
-                    <div key={label} className="surface-soft p-4">
-                      <p className="text-2xl font-black text-leaf-400">{value}</p>
-                      <p className="mt-1 text-sm text-mist-500">{label}</p>
-                    </div>
-                  ))}
+                  ].map(([label, value]) => {
+                    const Icon = equivIcons[label];
+                    return (
+                      <div key={label} className="surface-soft p-4 rounded-xl">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Icon size={14} className="text-sage-400" />
+                          <p className="text-xs text-sand-500 font-medium">{label}</p>
+                        </div>
+                        <p className="text-2xl font-extrabold text-sage-400">{value}</p>
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
-                <p className="text-sm text-mist-500">Select at least one lower-impact scenario to see equivalencies.</p>
+                <p className="text-sm text-sand-500">Select at least one lower-impact scenario to see equivalencies.</p>
               )}
             </section>
 
             <section className="surface overflow-hidden">
-              <div className="border-b border-white/8 px-5 py-4">
+              <div className="border-b border-sand-100/5 px-5 py-4 flex items-center justify-between">
                 <p className="section-title">Twin Preview</p>
+                <Zap size={12} className="text-teal-400" />
               </div>
               <div className="h-[340px]">
                 <CarbonTwin score={simulatedResult.total} animating={false} />
@@ -151,23 +166,23 @@ export default function Simulator() {
             <div className="space-y-5">
               <div>
                 <p className="meta-label">Current score</p>
-                <p className="mt-2 text-3xl font-black" style={{ color: getScoreColor(currentResult.total) }}>
-                  <AnimatedNumber value={currentResult.total} /> <span className="text-sm font-medium text-mist-500">kg/yr</span>
+                <p className="mt-2 text-3xl font-extrabold" style={{ color: getScoreColor(currentResult.total) }}>
+                  <AnimatedNumber value={currentResult.total} /> <span className="text-sm font-medium text-sand-500">kg/yr</span>
                 </p>
               </div>
-              <div className="h-px bg-white/10" />
+              <div className="h-px bg-sand-100/5" />
               <div>
                 <p className="meta-label">Simulated score</p>
-                <p className="mt-2 text-4xl font-black" style={{ color: getScoreColor(simulatedResult.total) }}>
-                  <AnimatedNumber value={simulatedResult.total} /> <span className="text-sm font-medium text-mist-500">kg/yr</span>
+                <p className="mt-2 text-4xl font-extrabold" style={{ color: getScoreColor(simulatedResult.total) }}>
+                  <AnimatedNumber value={simulatedResult.total} /> <span className="text-sm font-medium text-sand-500">kg/yr</span>
                 </p>
               </div>
-              <div className={`rounded-lg border p-4 ${
-                savings > 0 ? 'border-leaf-500/30 bg-leaf-500/10' : 'border-white/10 bg-white/[0.025]'
+              <div className={`rounded-xl border p-4 ${
+                savings > 0 ? 'border-sage-400/20 bg-sage-400/6' : 'border-sand-100/6 bg-sand-100/[0.02]'
               }`}>
-                <p className={savings > 0 ? 'text-leaf-400' : 'text-mist-500'}>
+                <p className={savings > 0 ? 'text-sage-400 flex items-center gap-2' : 'text-sand-500'}>
                   {savings > 0 ? (
-                    <><span className="text-xl font-black">-<AnimatedNumber value={savings} /> kg CO2/yr</span> saved</>
+                    <><TrendingDown size={16} /> <span className="text-xl font-extrabold">-<AnimatedNumber value={savings} /> kg CO2/yr</span> saved</>
                   ) : (
                     'No annual savings yet.'
                   )}

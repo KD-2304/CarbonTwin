@@ -10,6 +10,7 @@ import AiCoach from "../components/AiCoach";
 import AnimatedNumber from "../components/ui/AnimatedNumber";
 import { getScoreColor, getScoreLabel } from "../utils/scoreCalculator";
 import { BENCHMARKS } from "../utils/emissionFactors";
+import { Flame, TrendingDown, TrendingUp, Zap, AlertTriangle } from "lucide-react";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -39,7 +40,7 @@ export default function Dashboard() {
   const fadeIn = {
     initial: { opacity: 0, y: 16 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.45 },
+    transition: { duration: 0.5 },
   };
 
   return (
@@ -49,7 +50,7 @@ export default function Dashboard() {
           <p className="eyebrow">Dashboard</p>
           <h1 className="page-title">
             Welcome back,{" "}
-            <span className="text-leaf-400">
+            <span className="text-gradient-eco">
               {user?.name?.split(" ")[0] || "User"}
             </span>
           </h1>
@@ -58,9 +59,9 @@ export default function Dashboard() {
             focused workspace.
           </p>
         </div>
-        <div className="hidden md:block surface-soft px-4 py-3 text-right">
+        <div className="hidden md:block surface-soft px-4 py-3 text-right rounded-xl">
           <p className="meta-label">Status</p>
-          <p className="text-sm font-semibold text-white">
+          <p className="text-sm font-semibold text-sand-100 mt-1">
             {loaded ? "Synced just now" : "Syncing data"}
           </p>
         </div>
@@ -70,12 +71,12 @@ export default function Dashboard() {
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
-          className="surface-soft mb-5 flex items-start gap-3 border-sun-400/30 bg-sun-400/8 p-4"
+          className="surface-soft mb-5 flex items-start gap-3 border-amber-400/20 bg-amber-400/5 p-4 rounded-xl"
         >
-          <span className="mt-1 h-2 w-2 rounded-full bg-sun-400" />
+          <AlertTriangle size={16} className="mt-0.5 text-amber-400 shrink-0" />
           <div>
-            <p className="text-sm font-bold text-sun-400">Streak at risk</p>
-            <p className="text-sm text-[#a9bbb5]">
+            <p className="text-sm font-bold text-amber-400">Streak at risk</p>
+            <p className="text-sm text-sand-400">
               It has been {streakStatus.hoursSinceLastLog}hrs since your last
               log. Add an action to keep your {streak}-day streak.
             </p>
@@ -85,12 +86,14 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_390px]">
         <div className="space-y-5">
+          {/* Stat Cards Row */}
           <motion.section
             {...fadeIn}
             transition={{ delay: 0.05 }}
             className="grid grid-cols-1 gap-3 md:grid-cols-4"
           >
-            <div className="surface stat-card md:col-span-2">
+            {/* Primary stat — Annual footprint */}
+            <div className="surface surface-accent-sage stat-card md:col-span-2">
               <p className="meta-label">Annual footprint</p>
               <div className="mt-3 flex items-end gap-2">
                 <span
@@ -99,7 +102,7 @@ export default function Dashboard() {
                 >
                   <AnimatedNumber value={score} />
                 </span>
-                <span className="pb-1 text-sm text-mist-500">kg CO2/yr</span>
+                <span className="pb-1 text-sm text-sand-500">kg CO2/yr</span>
               </div>
               <p
                 className="mt-2 text-sm font-semibold"
@@ -109,56 +112,70 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <div className="surface stat-card">
-              <p className="meta-label">Streak</p>
-              <div className="mt-3 flex items-end gap-2">
-                <span className="metric-value text-sun-400">
+            {/* Streak */}
+            <div className="surface surface-accent-amber stat-card">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Flame size={13} className="text-amber-400" />
+                <p className="meta-label">Streak</p>
+              </div>
+              <div className="mt-2 flex items-end gap-2">
+                <span className="metric-value text-amber-400">
                   <AnimatedNumber value={streak} />
                 </span>
-                <span className="pb-1 text-sm text-mist-500">days</span>
+                <span className="pb-1 text-sm text-sand-500">days</span>
               </div>
-              <p className="mt-2 text-sm text-mist-500">Consistency score</p>
+              <p className="mt-2 text-xs text-sand-500">Consistency score</p>
             </div>
 
-            <div className="surface stat-card">
-              <p className="meta-label">This week</p>
-              <div className="mt-3 flex items-end gap-2">
+            {/* Weekly delta */}
+            <div className="surface surface-accent-teal stat-card">
+              <div className="flex items-center gap-1.5 mb-1">
+                {weeklyDelta <= 0 ? (
+                  <TrendingDown size={13} className="text-sage-400" />
+                ) : (
+                  <TrendingUp size={13} className="text-coral-400" />
+                )}
+                <p className="meta-label">This week</p>
+              </div>
+              <div className="mt-2 flex items-end gap-2">
                 <span
-                  className={`metric-value ${weeklyDelta <= 0 ? "text-leaf-400" : "text-rose-400"}`}
+                  className={`metric-value ${weeklyDelta <= 0 ? "text-sage-400" : "text-coral-400"}`}
                 >
                   <AnimatedNumber value={Math.abs(weeklyDelta)} decimals={1} />
                 </span>
-                <span className="pb-1 text-sm text-mist-500">
+                <span className="pb-1 text-sm text-sand-500">
                   kg {weeklyDelta <= 0 ? "saved" : "added"}
                 </span>
               </div>
-              <p className="mt-2 text-sm text-mist-500">
+              <p className="mt-2 text-xs text-sand-500">
                 {summary?.totalActions || 0} actions logged
               </p>
             </div>
           </motion.section>
 
+          {/* Carbon Twin — Full-width canvas */}
           <motion.section
             {...fadeIn}
             transition={{ delay: 0.1 }}
             className="surface overflow-hidden"
           >
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/8 px-5 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-sand-100/5 px-5 py-4">
               <div>
                 <p className="section-title">Carbon Twin</p>
-                <p className="text-sm text-mist-500">
+                <p className="text-sm text-sand-500">
                   Interactive reflection of your current footprint.
                 </p>
               </div>
-              <span className="rounded-md border border-aqua-400/20 bg-aqua-400/8 px-2.5 py-1 text-xs font-bold text-aqua-400">
-                3D Live
+              <span className="rounded-lg border border-teal-400/15 bg-teal-400/6 px-2.5 py-1 text-[10px] font-bold text-teal-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Zap size={10} /> 3D Live
               </span>
             </div>
-            <div className="h-[360px] md:h-[430px]">
+            <div className="h-[380px] md:h-[460px]">
               <CarbonTwin score={score} animating={scoreAnimating} />
             </div>
           </motion.section>
 
+          {/* Benchmark + Breakdown */}
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-[0.9fr_1.1fr]">
             <motion.section
               {...fadeIn}
@@ -175,12 +192,12 @@ export default function Dashboard() {
                     return (
                       <div key={key}>
                         <div className="mb-2 flex justify-between gap-3 text-xs">
-                          <span className="text-mist-500">
+                          <span className="text-sand-500">
                             {bench.label}: {bench.value.toLocaleString()} kg
                           </span>
                           <span
                             className={
-                              isBelow ? "text-leaf-400" : "text-sun-400"
+                              isBelow ? "text-sage-400" : "text-amber-400"
                             }
                           >
                             {isBelow
@@ -188,12 +205,12 @@ export default function Dashboard() {
                               : `${Math.round(score - bench.value)} above`}
                           </span>
                         </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-[#07110f]">
+                        <div className="h-2 overflow-hidden rounded-full bg-base-950">
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${pct}%` }}
                             transition={{ duration: 1, delay: 0.4 }}
-                            className={`h-full rounded-full ${isBelow ? "bg-leaf-500" : "bg-sun-400"}`}
+                            className={`h-full rounded-full ${isBelow ? "bg-gradient-to-r from-sage-500 to-sage-400" : "bg-gradient-to-r from-amber-500 to-amber-400"}`}
                           />
                         </div>
                       </div>
@@ -212,6 +229,7 @@ export default function Dashboard() {
             </motion.section>
           </div>
 
+          {/* 30-day Trend */}
           <motion.section
             {...fadeIn}
             transition={{ delay: 0.25 }}
@@ -222,6 +240,7 @@ export default function Dashboard() {
           </motion.section>
         </div>
 
+        {/* Sidebar panels */}
         <aside className="space-y-5 xl:sticky xl:top-6 xl:self-start">
           <motion.div {...fadeIn} transition={{ delay: 0.15 }}>
             <ActionLogger />

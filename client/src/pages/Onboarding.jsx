@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { quizAPI } from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { calculateBaselineScore } from '../utils/scoreCalculator';
-import { EMISSION_FACTORS } from '../utils/emissionFactors';
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 
 const steps = [
   { id: 'transport', title: 'Transportation', icon: '🚗', description: 'How do you usually get around?' },
@@ -58,6 +58,7 @@ export default function Onboarding() {
   const { refreshUser } = useAuth();
 
   const currentStep = steps[step];
+  const progress = ((step + 1) / steps.length) * 100;
 
   const updateAnswer = (key, value) => {
     setAnswers(prev => ({ ...prev, [key]: value }));
@@ -84,7 +85,6 @@ export default function Onboarding() {
       await quizAPI.submit(answers);
       await refreshUser();
 
-      // Show score briefly then navigate
       setTimeout(() => navigate('/dashboard'), 3000);
     } catch (err) {
       console.error('Quiz submission error:', err);
@@ -95,75 +95,104 @@ export default function Onboarding() {
   // Score preview after submission
   if (previewScore) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0f1e] px-4">
+      <div className="min-h-screen flex items-center justify-center bg-base-950 px-4 relative overflow-hidden">
+        <div className="blob-shape w-[400px] h-[400px] bg-sage-500/10 top-[20%] left-[10%]" />
+
         <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
+          initial={{ opacity: 0, scale: 0.85 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
+          className="text-center relative z-10"
         >
           <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 150, delay: 0.3 }}
-            className="w-40 h-40 mx-auto mb-8 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-600/20 border-2 border-green-500/30 flex items-center justify-center"
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 120, delay: 0.3 }}
+            className="w-40 h-40 mx-auto mb-8 rounded-full bg-gradient-to-br from-sage-400/15 to-teal-400/15 border-2 border-sage-400/25 flex items-center justify-center"
           >
             <div>
-              <p className="text-4xl font-bold text-white">{previewScore.total.toLocaleString()}</p>
-              <p className="text-green-400 text-sm mt-1">kg CO₂/year</p>
+              <p className="text-4xl font-extrabold text-sand-100">{previewScore.total.toLocaleString()}</p>
+              <p className="text-sage-400 text-sm mt-1 font-semibold">kg CO₂/year</p>
             </div>
           </motion.div>
-          <h2 className="text-2xl font-bold text-white mb-2">Your Carbon Baseline</h2>
-          <p className="text-gray-400 mb-4">
+          <h2 className="text-2xl font-extrabold text-sand-100 mb-2 tracking-tight">Your Carbon Baseline</h2>
+          <p className="text-sand-400 mb-4">
             {previewScore.total < 2000 ? "Amazing! You're below the Paris target! 🌟" :
              previewScore.total < 4000 ? "Good start! Let's bring it down together. 💪" :
              "Let's work on reducing your footprint. Every action counts! 🌱"}
           </p>
-          <p className="text-gray-500 text-sm">Redirecting to your dashboard...</p>
+          <p className="text-sand-600 text-sm">Redirecting to your dashboard...</p>
         </motion.div>
       </div>
     );
   }
 
+  const optionButtonClass = (isActive) =>
+    `w-full p-4 rounded-xl flex items-center gap-4 transition-all border ${
+      isActive
+        ? 'bg-sage-400/10 border-sage-400/30 shadow-lg shadow-sage-400/5'
+        : 'bg-base-800/40 border-sand-100/6 hover:border-sand-100/12 hover:bg-base-800/70'
+    }`;
+
+  const gridOptionClass = (isActive) =>
+    `p-4 rounded-xl text-left transition-all border ${
+      isActive
+        ? 'bg-sage-400/10 border-sage-400/30 shadow-lg shadow-sage-400/5'
+        : 'bg-base-800/40 border-sand-100/6 hover:border-sand-100/12 hover:bg-base-800/70'
+    }`;
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0a0f1e] px-4">
-      <div className="w-full max-w-xl">
-        {/* Progress bar */}
+    <div className="min-h-screen flex items-center justify-center bg-base-950 px-4 relative overflow-hidden">
+      <div className="blob-shape w-[400px] h-[400px] bg-sage-500/8 top-[-100px] right-[-100px]" />
+      <div className="blob-shape w-[300px] h-[300px] bg-teal-500/6 bottom-[-80px] left-[-80px]" style={{ animationDelay: '-5s' }} />
+
+      <div className="w-full max-w-xl relative z-10">
+        {/* Progress */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-4">
             {steps.map((s, i) => (
               <div key={s.id} className="flex items-center">
                 <motion.div
                   animate={{
-                    backgroundColor: i <= step ? '#10b981' : '#1f2937',
+                    backgroundColor: i <= step ? 'rgba(124,183,127,0.15)' : 'rgba(34,38,47,0.7)',
+                    borderColor: i <= step ? 'rgba(124,183,127,0.35)' : 'rgba(240,236,228,0.06)',
                     scale: i === step ? 1.1 : 1
                   }}
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-lg"
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-lg border transition-all"
                 >
-                  {i < step ? '✓' : s.icon}
+                  {i < step ? <Check size={16} className="text-sage-400" /> : s.icon}
                 </motion.div>
                 {i < steps.length - 1 && (
-                  <div className={`hidden sm:block w-16 h-0.5 mx-1 ${i < step ? 'bg-green-500' : 'bg-[#1f2937]'}`} />
+                  <div className={`hidden sm:block w-12 h-0.5 mx-1 rounded-full transition-colors ${i < step ? 'bg-sage-400/40' : 'bg-base-700'}`} />
                 )}
               </div>
             ))}
           </div>
-          <p className="text-gray-500 text-sm text-center">Step {step + 1} of {steps.length}</p>
+
+          {/* Continuous progress bar */}
+          <div className="h-1 w-full rounded-full bg-base-800 overflow-hidden">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-sage-400 to-teal-400"
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+            />
+          </div>
+          <p className="text-sand-500 text-xs text-center mt-2 font-medium">Step {step + 1} of {steps.length}</p>
         </div>
 
         {/* Step content */}
         <AnimatePresence mode="wait">
           <motion.div
             key={step}
-            initial={{ opacity: 0, x: 50 }}
+            initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
+            exit={{ opacity: 0, x: -40 }}
             transition={{ duration: 0.3 }}
-            className="glass-card p-8"
+            className="glass-card-premium p-8"
           >
             <div className="text-center mb-6">
               <span className="text-4xl mb-3 block">{currentStep.icon}</span>
-              <h2 className="text-2xl font-bold text-white">{currentStep.title}</h2>
-              <p className="text-gray-400 mt-1">{currentStep.description}</p>
+              <h2 className="text-2xl font-extrabold text-sand-100 tracking-tight">{currentStep.title}</h2>
+              <p className="text-sand-400 mt-1">{currentStep.description}</p>
             </div>
 
             {/* Transport step */}
@@ -174,30 +203,26 @@ export default function Onboarding() {
                     <button
                       key={mode.value}
                       onClick={() => updateAnswer('transport', { ...answers.transport, mode: mode.value })}
-                      className={`p-3 rounded-xl text-left transition-all ${
-                        answers.transport.mode === mode.value
-                          ? 'bg-green-500/15 border-2 border-green-500/50 text-white'
-                          : 'bg-[#1f2937]/50 border-2 border-transparent text-gray-400 hover:border-gray-600'
-                      }`}
+                      className={gridOptionClass(answers.transport.mode === mode.value)}
                     >
                       <span className="text-xl">{mode.icon}</span>
-                      <p className="text-sm font-medium mt-1">{mode.label}</p>
+                      <p className="text-sm font-medium mt-1 text-sand-200">{mode.label}</p>
                     </button>
                   ))}
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-300 mb-2">Weekly distance (km)</label>
+                  <label className="block text-sm text-sand-300 mb-2 font-medium">Weekly distance (km)</label>
                   <input
                     type="range"
                     min="0"
                     max="500"
                     value={answers.transport.weeklyKm}
                     onChange={(e) => updateAnswer('transport', { ...answers.transport, weeklyKm: Number(e.target.value) })}
-                    className="w-full accent-green-500"
+                    className="w-full"
                   />
-                  <div className="flex justify-between text-sm text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-sand-500 mt-1">
                     <span>0 km</span>
-                    <span className="text-green-400 font-medium">{answers.transport.weeklyKm} km/week</span>
+                    <span className="text-sage-400 font-bold">{answers.transport.weeklyKm} km/week</span>
                     <span>500 km</span>
                   </div>
                 </div>
@@ -211,16 +236,12 @@ export default function Onboarding() {
                   <button
                     key={option.value}
                     onClick={() => updateAnswer('diet', option.value)}
-                    className={`w-full p-4 rounded-xl flex items-center gap-4 transition-all ${
-                      answers.diet === option.value
-                        ? 'bg-green-500/15 border-2 border-green-500/50'
-                        : 'bg-[#1f2937]/50 border-2 border-transparent hover:border-gray-600'
-                    }`}
+                    className={optionButtonClass(answers.diet === option.value)}
                   >
                     <span className="text-2xl">{option.icon}</span>
                     <div className="text-left">
-                      <p className="text-white font-medium">{option.label}</p>
-                      <p className="text-gray-500 text-xs">{option.desc}</p>
+                      <p className="text-sand-100 font-semibold text-sm">{option.label}</p>
+                      <p className="text-sand-500 text-xs">{option.desc}</p>
                     </div>
                   </button>
                 ))}
@@ -235,22 +256,18 @@ export default function Onboarding() {
                     <button
                       key={src.value}
                       onClick={() => updateAnswer('energy', { ...answers.energy, source: src.value })}
-                      className={`w-full p-4 rounded-xl flex items-center gap-4 transition-all ${
-                        answers.energy.source === src.value
-                          ? 'bg-green-500/15 border-2 border-green-500/50'
-                          : 'bg-[#1f2937]/50 border-2 border-transparent hover:border-gray-600'
-                      }`}
+                      className={optionButtonClass(answers.energy.source === src.value)}
                     >
                       <span className="text-2xl">{src.icon}</span>
                       <div className="text-left">
-                        <p className="text-white font-medium">{src.label}</p>
-                        <p className="text-gray-500 text-xs">{src.desc}</p>
+                        <p className="text-sand-100 font-semibold text-sm">{src.label}</p>
+                        <p className="text-sand-500 text-xs">{src.desc}</p>
                       </div>
                     </button>
                   ))}
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-300 mb-2">Monthly electricity usage (kWh)</label>
+                  <label className="block text-sm text-sand-300 mb-2 font-medium">Monthly electricity usage (kWh)</label>
                   <input
                     type="range"
                     min="50"
@@ -258,11 +275,11 @@ export default function Onboarding() {
                     step="10"
                     value={answers.energy.monthlyKwh}
                     onChange={(e) => updateAnswer('energy', { ...answers.energy, monthlyKwh: Number(e.target.value) })}
-                    className="w-full accent-green-500"
+                    className="w-full"
                   />
-                  <div className="flex justify-between text-sm text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-sand-500 mt-1">
                     <span>50 kWh</span>
-                    <span className="text-green-400 font-medium">{answers.energy.monthlyKwh} kWh/mo</span>
+                    <span className="text-sage-400 font-bold">{answers.energy.monthlyKwh} kWh/mo</span>
                     <span>1000 kWh</span>
                   </div>
                 </div>
@@ -276,16 +293,12 @@ export default function Onboarding() {
                   <button
                     key={level.value}
                     onClick={() => updateAnswer('shopping', level.value)}
-                    className={`w-full p-4 rounded-xl flex items-center gap-4 transition-all ${
-                      answers.shopping === level.value
-                        ? 'bg-green-500/15 border-2 border-green-500/50'
-                        : 'bg-[#1f2937]/50 border-2 border-transparent hover:border-gray-600'
-                    }`}
+                    className={optionButtonClass(answers.shopping === level.value)}
                   >
                     <span className="text-2xl">{level.icon}</span>
                     <div className="text-left">
-                      <p className="text-white font-medium">{level.label}</p>
-                      <p className="text-gray-500 text-xs">{level.desc}</p>
+                      <p className="text-sand-100 font-semibold text-sm">{level.label}</p>
+                      <p className="text-sand-500 text-xs">{level.desc}</p>
                     </div>
                   </button>
                 ))}
@@ -296,36 +309,36 @@ export default function Onboarding() {
             {step === 4 && (
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm text-gray-300 mb-2">
+                  <label className="block text-sm text-sand-300 mb-3 font-medium">
                     Short-haul flights per year ({'<'}3hrs)
-                    <span className="text-gray-500 text-xs ml-2">~255 kg CO₂ each</span>
+                    <span className="text-sand-500 text-xs ml-2 font-normal">~255 kg CO₂ each</span>
                   </label>
                   <div className="flex items-center gap-4">
                     <button
                       onClick={() => updateAnswer('flights', { ...answers.flights, shortHaul: Math.max(0, answers.flights.shortHaul - 1) })}
-                      className="w-10 h-10 rounded-lg bg-[#1f2937] text-white font-bold hover:bg-[#374151] transition-colors"
+                      className="w-11 h-11 rounded-xl bg-base-800 border border-sand-100/8 text-sand-100 font-bold hover:bg-base-700 transition-colors text-lg"
                     >−</button>
-                    <span className="text-2xl font-bold text-white w-12 text-center">{answers.flights.shortHaul}</span>
+                    <span className="text-2xl font-extrabold text-sand-100 w-12 text-center">{answers.flights.shortHaul}</span>
                     <button
                       onClick={() => updateAnswer('flights', { ...answers.flights, shortHaul: answers.flights.shortHaul + 1 })}
-                      className="w-10 h-10 rounded-lg bg-[#1f2937] text-white font-bold hover:bg-[#374151] transition-colors"
+                      className="w-11 h-11 rounded-xl bg-base-800 border border-sand-100/8 text-sand-100 font-bold hover:bg-base-700 transition-colors text-lg"
                     >+</button>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-300 mb-2">
+                  <label className="block text-sm text-sand-300 mb-3 font-medium">
                     Long-haul flights per year ({'>'}6hrs)
-                    <span className="text-gray-500 text-xs ml-2">~1,620 kg CO₂ each</span>
+                    <span className="text-sand-500 text-xs ml-2 font-normal">~1,620 kg CO₂ each</span>
                   </label>
                   <div className="flex items-center gap-4">
                     <button
                       onClick={() => updateAnswer('flights', { ...answers.flights, longHaul: Math.max(0, answers.flights.longHaul - 1) })}
-                      className="w-10 h-10 rounded-lg bg-[#1f2937] text-white font-bold hover:bg-[#374151] transition-colors"
+                      className="w-11 h-11 rounded-xl bg-base-800 border border-sand-100/8 text-sand-100 font-bold hover:bg-base-700 transition-colors text-lg"
                     >−</button>
-                    <span className="text-2xl font-bold text-white w-12 text-center">{answers.flights.longHaul}</span>
+                    <span className="text-2xl font-extrabold text-sand-100 w-12 text-center">{answers.flights.longHaul}</span>
                     <button
                       onClick={() => updateAnswer('flights', { ...answers.flights, longHaul: answers.flights.longHaul + 1 })}
-                      className="w-10 h-10 rounded-lg bg-[#1f2937] text-white font-bold hover:bg-[#374151] transition-colors"
+                      className="w-11 h-11 rounded-xl bg-base-800 border border-sand-100/8 text-sand-100 font-bold hover:bg-base-700 transition-colors text-lg"
                     >+</button>
                   </div>
                 </div>
@@ -333,20 +346,20 @@ export default function Onboarding() {
             )}
 
             {/* Navigation */}
-            <div className="flex justify-between mt-8">
+            <div className="flex justify-between mt-8 pt-6 border-t border-sand-100/5">
               <button
                 onClick={prevStep}
                 disabled={step === 0}
-                className="btn-secondary disabled:opacity-30 disabled:cursor-not-allowed"
+                className="btn-secondary disabled:opacity-20 gap-1.5"
               >
-                ← Back
+                <ArrowLeft size={14} /> Back
               </button>
               <button
                 onClick={nextStep}
                 disabled={submitting}
-                className="btn-primary disabled:opacity-50"
+                className="btn-primary disabled:opacity-50 gap-1.5"
               >
-                {submitting ? 'Calculating...' : step === steps.length - 1 ? 'Calculate My Score →' : 'Next →'}
+                {submitting ? 'Calculating...' : step === steps.length - 1 ? 'Calculate Score' : 'Next'} <ArrowRight size={14} />
               </button>
             </div>
           </motion.div>

@@ -44,10 +44,10 @@ function AppRoutes() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0a0f1e]">
+      <div className="flex items-center justify-center min-h-screen bg-base-950">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
-          <p className="text-gray-400 text-sm">Loading Carbon Twin City...</p>
+          <div className="w-12 h-12 border-4 border-sage-400/20 border-t-sage-400 rounded-full animate-spin" />
+          <p className="text-sand-500 text-sm font-medium">Loading Carbon Twin City...</p>
         </div>
       </div>
     );
@@ -58,7 +58,7 @@ function AppRoutes() {
       <AnimatePresence mode="wait">
         <Routes>
           {/* Public routes */}
-          <Route path="/" element={<Landing />} />
+          <Route path='/' element={<Landing />}/>
           <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
           <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
 
