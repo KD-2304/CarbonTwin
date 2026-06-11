@@ -1,6 +1,6 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
-const COLORS = ['#10b981', '#06b6d4', '#f59e0b', '#8b5cf6', '#ef4444'];
+const COLORS = ['#7cb77f', '#4db8a4', '#e5a548', '#9b8ce6', '#e06c5d'];
 const LABELS = {
   transport: 'Transport',
   diet: 'Diet',
@@ -19,7 +19,7 @@ export default function ScoreBreakdown({ breakdown = {} }) {
 
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[250px] text-gray-500 text-sm">
+      <div className="flex items-center justify-center h-[250px] text-sand-500 text-sm">
         No breakdown data available
       </div>
     );
@@ -33,8 +33,8 @@ export default function ScoreBreakdown({ breakdown = {} }) {
       const pct = ((item.value / total) * 100).toFixed(1);
       return (
         <div className="glass-card px-3 py-2 text-sm">
-          <p className="text-white font-medium">{item.name}</p>
-          <p className="text-gray-400">{item.value.toLocaleString()} kg CO₂/yr ({pct}%)</p>
+          <p className="text-sand-100 font-semibold">{item.name}</p>
+          <p className="text-sand-400">{item.value.toLocaleString()} kg CO₂/yr ({pct}%)</p>
         </div>
       );
     }
@@ -62,7 +62,7 @@ export default function ScoreBreakdown({ breakdown = {} }) {
         <Legend
           iconType="circle"
           iconSize={8}
-          wrapperStyle={{ fontSize: '12px', color: '#9ca3af' }}
+          wrapperStyle={{ fontSize: '12px', color: '#918a7e' }}
         />
       </PieChart>
     </ResponsiveContainer>
