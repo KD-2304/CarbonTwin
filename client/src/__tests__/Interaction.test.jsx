@@ -44,7 +44,8 @@ const mockLogAction = vi.fn().mockResolvedValue({
   action: { co2Delta: -0.5, label: 'Vegan meal' },
 });
 
-vi.mock('../context/ScoreContext.jsx', () => {
+vi.mock('../context/ScoreContext.jsx', async () => {
+  const { ACTION_OPTIONS } = await import('../utils/emissionFactors');
   return {
     useScore: () => ({
       logAction: mockLogAction,
@@ -53,7 +54,8 @@ vi.mock('../context/ScoreContext.jsx', () => {
       fetchScore: vi.fn(),
       fetchHistory: vi.fn(),
       fetchSummary: vi.fn(),
-      summary: { totalDelta: -5, totalActions: 3 }
+      summary: { totalDelta: -5, totalActions: 3 },
+      actionOptions: ACTION_OPTIONS
     }),
     ScoreProvider: ({ children }) => <>{children}</>
   };
@@ -92,6 +94,27 @@ vi.mock('framer-motion', () => {
     motion: motionMock
   };
 });
+
+// Mock axios API calls to avoid actual network errors in tests
+vi.mock('../api/axios', () => ({
+  simulatorAPI: {
+    calculate: vi.fn().mockResolvedValue({
+      data: {
+        currentScore: 3000,
+        simulatedScore: 2800,
+        savings: 200,
+        currentBreakdown: { transport: 1000, diet: 1000, energy: 500, shopping: 300, flights: 200 },
+        simulatedBreakdown: { transport: 800, diet: 1000, energy: 500, shopping: 300, flights: 200 },
+        equivalencies: { treesPlanted: 10, kmNotDriven: 100, smartphonesCharged: 50, showers: 5 }
+      }
+    })
+  },
+  quizAPI: {
+    getEmissionFactors: vi.fn().mockResolvedValue({
+      data: {}
+    })
+  }
+}));
 
 describe('ActionLogger Component', () => {
   beforeEach(() => {

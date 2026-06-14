@@ -93,19 +93,19 @@ export default function Register() {
 
             <form onSubmit={handleSubmit} className="mt-7 space-y-4">
               <div>
-                <label className="mb-1.5 block text-xs font-bold text-sand-300 uppercase tracking-wider">Name</label>
-                <input type="text" name="name" value={formData.name} onChange={handleChange} className="input-field" placeholder="Your full name" required />
+                <label htmlFor="register-name" className="mb-1.5 block text-xs font-bold text-sand-300 uppercase tracking-wider">Name</label>
+                <input id="register-name" type="text" name="name" value={formData.name} onChange={handleChange} className="input-field" placeholder="Your full name" required />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-bold text-sand-300 uppercase tracking-wider">Email</label>
-                <input type="email" name="email" value={formData.email} onChange={handleChange} className="input-field" placeholder="you@example.com" required />
+                <label htmlFor="register-email" className="mb-1.5 block text-xs font-bold text-sand-300 uppercase tracking-wider">Email</label>
+                <input id="register-email" type="email" name="email" value={formData.email} onChange={handleChange} className="input-field" placeholder="you@example.com" required />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-bold text-sand-300 uppercase tracking-wider">Password</label>
+                <label htmlFor="register-password" className="mb-1.5 block text-xs font-bold text-sand-300 uppercase tracking-wider">Password</label>
                 <div className="relative">
-                  <input type={showPw ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} className="input-field pr-10" placeholder="At least 6 characters" minLength={6} required />
+                  <input id="register-password" type={showPw ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} className="input-field pr-10" placeholder="At least 6 characters" minLength={6} required />
                   <button
                     type="button"
                     onClick={() => setShowPw(!showPw)}
@@ -119,12 +119,12 @@ export default function Register() {
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1.5 block text-xs font-bold text-sand-300 uppercase tracking-wider">City</label>
-                  <input type="text" name="city" value={formData.city} onChange={handleChange} className="input-field" placeholder="Your city" />
+                  <label htmlFor="register-city" className="mb-1.5 block text-xs font-bold text-sand-300 uppercase tracking-wider">City</label>
+                  <input id="register-city" type="text" name="city" value={formData.city} onChange={handleChange} className="input-field" placeholder="Your city" />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-bold text-sand-300 uppercase tracking-wider">Country</label>
-                  <input type="text" name="country" value={formData.country} onChange={handleChange} className="input-field" placeholder="Your country" />
+                  <label htmlFor="register-country" className="mb-1.5 block text-xs font-bold text-sand-300 uppercase tracking-wider">Country</label>
+                  <input id="register-country" type="text" name="country" value={formData.country} onChange={handleChange} className="input-field" placeholder="Your country" />
                 </div>
               </div>
 

@@ -80,7 +80,6 @@ router.post('/register', validateRegisterInput, async (req, res) => {
     });
 
     res.status(201).json({
-      token, // Maintain payload token for testing compatibility
       user: {
         id: user._id,
         name: user.name,
@@ -126,7 +125,6 @@ router.post('/login', validateLoginInput, async (req, res) => {
     });
 
     res.json({
-      token, // Maintain payload token for testing compatibility
       user: {
         id: user._id,
         name: user.name,

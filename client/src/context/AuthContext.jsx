@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     const { data } = await authAPI.login({ email, password });
     localStorage.setItem('ctc_user', JSON.stringify(data.user));
-    setToken(data.token);
+    setToken('cookie_session');
     setUser(data.user);
     return data.user;
   };
@@ -42,7 +42,7 @@ export function AuthProvider({ children }) {
   const register = async (userData) => {
     const { data } = await authAPI.register(userData);
     localStorage.setItem('ctc_user', JSON.stringify(data.user));
-    setToken(data.token);
+    setToken('cookie_session');
     setUser(data.user);
     return data.user;
   };

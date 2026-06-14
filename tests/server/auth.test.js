@@ -6,6 +6,13 @@ const User = require('../../server/models/User');
 // Unique email generator to avoid collisions between test runs
 const testEmail = () => `test_${Date.now()}_${Math.random().toString(36).slice(2)}@example.com`;
 
+const getTokenFromCookie = (res) => {
+  const cookieHeader = res.headers['set-cookie']?.[0];
+  if (!cookieHeader) return null;
+  const match = cookieHeader.match(/ctc_token=([^;]+)/);
+  return match ? match[1] : null;
+};
+
 describe('POST /api/auth/register', () => {
   it('should reject registration with missing fields', async () => {
     const res = await request(app)
@@ -26,14 +33,16 @@ describe('POST /api/auth/register', () => {
     expect(res.body.error).toMatch(/6 characters/i);
   });
 
-  it('should register a new user and return a token', async () => {
+  it('should register a new user and set a cookie token', async () => {
     const email = testEmail();
     const res = await request(app)
       .post('/api/auth/register')
       .send({ name: 'Test User', email, password: 'password123' });
 
     expect(res.status).toBe(201);
-    expect(res.body).toHaveProperty('token');
+    expect(res.body).not.toHaveProperty('token');
+    const token = getTokenFromCookie(res);
+    expect(token).toBeTruthy();
     expect(res.body).toHaveProperty('user');
     expect(res.body.user).toHaveProperty('email', email);
     expect(res.body.user).toHaveProperty('name', 'Test User');
@@ -105,17 +114,18 @@ describe('POST /api/auth/login', () => {
     expect(res.body.error).toMatch(/invalid/i);
   });
 
-  it('should login successfully and return a token', async () => {
+  it('should login successfully and set a cookie token', async () => {
     const res = await request(app)
       .post('/api/auth/login')
       .send({ email: loginEmail, password: loginPassword });
 
     expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('token');
+    expect(res.body).not.toHaveProperty('token');
+    const token = getTokenFromCookie(res);
+    expect(token).toBeTruthy();
+    expect(token.length).toBeGreaterThan(0);
     expect(res.body).toHaveProperty('user');
     expect(res.body.user).toHaveProperty('email', loginEmail);
     expect(res.body.user).toHaveProperty('name', 'Login Test User');
-    expect(typeof res.body.token).toBe('string');
-    expect(res.body.token.length).toBeGreaterThan(0);
   });
 });

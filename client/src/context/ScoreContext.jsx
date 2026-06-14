@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useCallback } from 'react';
-import { userAPI, actionsAPI } from '../api/axios';
+import { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
+import { userAPI, actionsAPI, quizAPI } from '../api/axios';
 import { useAuth } from './AuthContext';
+import { ACTION_OPTIONS as STATIC_ACTION_OPTIONS } from '../utils/emissionFactors';
 
 const ScoreContext = createContext(null);
 
@@ -11,6 +12,38 @@ export function ScoreProvider({ children }) {
   const [summary, setSummary] = useState(null);
   const [scoreAnimating, setScoreAnimating] = useState(false);
   const [lastDelta, setLastDelta] = useState(0);
+  const [emissionFactors, setEmissionFactors] = useState(null);
+
+  const fetchEmissionFactors = useCallback(async () => {
+    try {
+      const { data } = await quizAPI.getEmissionFactors();
+      setEmissionFactors(data);
+      return data;
+    } catch (err) {
+      console.error('Failed to fetch emission factors:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchEmissionFactors();
+  }, [fetchEmissionFactors]);
+
+  const actionOptions = useMemo(() => {
+    const staticOptions = JSON.parse(JSON.stringify(STATIC_ACTION_OPTIONS));
+    if (!emissionFactors || !emissionFactors.actions) {
+      return staticOptions;
+    }
+    Object.keys(staticOptions).forEach(category => {
+      staticOptions[category] = staticOptions[category].map(option => {
+        const backendDelta = emissionFactors.actions[category]?.[option.id];
+        if (backendDelta !== undefined && backendDelta !== null) {
+          return { ...option, delta: backendDelta };
+        }
+        return option;
+      });
+    });
+    return staticOptions;
+  }, [emissionFactors]);
 
   const fetchScore = useCallback(async () => {
     try {
@@ -65,6 +98,7 @@ export function ScoreProvider({ children }) {
       summary,
       scoreAnimating,
       lastDelta,
+      actionOptions,
       fetchScore,
       fetchHistory,
       fetchSummary,

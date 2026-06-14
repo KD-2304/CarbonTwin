@@ -93,8 +93,9 @@ export default function Login() {
 
             <form onSubmit={handleSubmit} className="mt-7 space-y-5">
               <div>
-                <label className="mb-1.5 block text-xs font-bold text-sand-300 uppercase tracking-wider">Email</label>
+                <label htmlFor="login-email" className="mb-1.5 block text-xs font-bold text-sand-300 uppercase tracking-wider">Email</label>
                 <input
+                  id="login-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -105,9 +106,10 @@ export default function Login() {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-bold text-sand-300 uppercase tracking-wider">Password</label>
+                <label htmlFor="login-password" className="mb-1.5 block text-xs font-bold text-sand-300 uppercase tracking-wider">Password</label>
                 <div className="relative">
                   <input
+                    id="login-password"
                     type={showPw ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -118,6 +120,7 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => setShowPw(!showPw)}
+                    aria-label={showPw ? "Hide password" : "Show password"}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-sand-500 hover:text-sand-300 transition-colors"
                   >
                     {showPw ? <EyeOff size={16} /> : <Eye size={16} />}

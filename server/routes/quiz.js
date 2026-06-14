@@ -1,9 +1,14 @@
 const express = require('express');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
-const { calculateBaselineScore } = require('../services/scoreService');
+const { calculateBaselineScore, EMISSION_FACTORS } = require('../services/scoreService');
 
 const router = express.Router();
+
+// GET /api/quiz/emission-factors
+router.get('/emission-factors', auth, (req, res) => {
+  res.json(EMISSION_FACTORS);
+});
 
 // POST /api/quiz/submit
 router.post('/submit', auth, async (req, res) => {

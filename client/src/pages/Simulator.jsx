@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import CarbonTwin from '../components/twin/CarbonTwin';
 import AnimatedNumber from '../components/ui/AnimatedNumber';
-import { calculateBaselineScore, getScoreColor, getEquivalencies, formatNumber } from '../utils/scoreCalculator';
+import { getScoreColor, formatNumber } from '../utils/scoreCalculator';
 import { TreePine, Car, Smartphone, Droplets, TrendingDown, Zap } from 'lucide-react';
+import { simulatorAPI } from '../api/axios';
 
 const sliderConfig = [
   { id: 'goVegetarian', label: 'Go Vegetarian', description: 'Switch from your current diet to vegetarian', field: 'diet', newValue: 'vegetarian' },
@@ -26,39 +27,52 @@ export default function Simulator() {
   const { user } = useAuth();
   const [activeToggles, setActiveToggles] = useState({});
 
-  const quizAnswers = user?.quizAnswers || {
+  const [simulatedData, setSimulatedData] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const quizAnswers = useMemo(() => user?.quizAnswers || {
     transport: { mode: 'car_petrol', weeklyKm: 80 },
     diet: 'omnivore',
     energy: { source: 'mixed', monthlyKwh: 250 },
     shopping: 'average',
     flights: { shortHaul: 2, longHaul: 1 }
-  };
+  }, [user]);
 
-  const currentResult = useMemo(() => calculateBaselineScore(quizAnswers), [quizAnswers]);
+  const currentResult = useMemo(() => {
+    const total = user?.currentScore || 3000;
+    return { total };
+  }, [user]);
 
-  const simulatedResult = useMemo(() => {
-    const modified = JSON.parse(JSON.stringify(quizAnswers));
+  useEffect(() => {
+    let active = true;
+    const fetchSimulation = async () => {
+      setLoading(true);
+      try {
+        const { data } = await simulatorAPI.calculate({
+          currentAnswers: quizAnswers,
+          modifications: activeToggles
+        });
+        if (active) {
+          setSimulatedData(data);
+        }
+      } catch (err) {
+        console.error('Simulator calculation failed:', err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
 
-    if (activeToggles.goVegetarian) modified.diet = 'vegetarian';
-    if (activeToggles.goVegan) modified.diet = 'vegan';
-    if (activeToggles.cycleInsteadOfDrive) {
-      modified.transport = { mode: 'bike', weeklyKm: modified.transport.weeklyKm * 4 / 7 };
-    }
-    if (activeToggles.cutLongHaulFlight) {
-      modified.flights = { ...modified.flights, longHaul: Math.max(0, modified.flights.longHaul - 1) };
-    }
-    if (activeToggles.switchToRenewable) {
-      modified.energy = { ...modified.energy, source: 'renewable' };
-    }
-    if (activeToggles.reduceShoppingToMinimal) {
-      modified.shopping = 'minimal';
-    }
+    fetchSimulation();
 
-    return calculateBaselineScore(modified);
+    return () => {
+      active = false;
+    };
   }, [quizAnswers, activeToggles]);
 
-  const savings = currentResult.total - simulatedResult.total;
-  const equivalencies = getEquivalencies(savings);
+  const currentTotal = simulatedData?.currentScore || currentResult.total;
+  const simulatedTotal = simulatedData?.simulatedScore || currentTotal;
+  const savings = simulatedData?.savings || 0;
+  const equivalencies = simulatedData?.equivalencies || { treesPlanted: 0, kmNotDriven: 0, smartphonesCharged: 0, showers: 0 };
   const activeCount = Object.values(activeToggles).filter(Boolean).length;
 
   const toggle = (id) => {
@@ -96,6 +110,9 @@ export default function Simulator() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.04 }}
                     onClick={() => toggle(item.id)}
+                    role="switch"
+                    aria-checked={isActive ? "true" : "false"}
+                    aria-label={item.label}
                     className={`flex min-h-[120px] items-start justify-between gap-4 rounded-xl border p-4 text-left transition-all ${
                       isActive
                         ? 'border-sage-400/30 bg-sage-400/8 shadow-lg shadow-sage-400/5'
@@ -154,7 +171,7 @@ export default function Simulator() {
                 <Zap size={12} className="text-teal-400" />
               </div>
               <div className="h-[340px]">
-                <CarbonTwin score={simulatedResult.total} animating={false} />
+                <CarbonTwin score={simulatedTotal} animating={false} />
               </div>
             </section>
           </div>
@@ -166,15 +183,15 @@ export default function Simulator() {
             <div className="space-y-5">
               <div>
                 <p className="meta-label">Current score</p>
-                <p className="mt-2 text-3xl font-extrabold" style={{ color: getScoreColor(currentResult.total) }}>
-                  <AnimatedNumber value={currentResult.total} /> <span className="text-sm font-medium text-sand-500">kg/yr</span>
+                <p className="mt-2 text-3xl font-extrabold" style={{ color: getScoreColor(currentTotal) }}>
+                  <AnimatedNumber value={currentTotal} /> <span className="text-sm font-medium text-sand-500">kg/yr</span>
                 </p>
               </div>
               <div className="h-px bg-sand-100/5" />
               <div>
                 <p className="meta-label">Simulated score</p>
-                <p className="mt-2 text-4xl font-extrabold" style={{ color: getScoreColor(simulatedResult.total) }}>
-                  <AnimatedNumber value={simulatedResult.total} /> <span className="text-sm font-medium text-sand-500">kg/yr</span>
+                <p className="mt-2 text-4xl font-extrabold" style={{ color: getScoreColor(simulatedTotal) }}>
+                  <AnimatedNumber value={simulatedTotal} /> <span className="text-sm font-medium text-sand-500">kg/yr</span>
                 </p>
               </div>
               <div className={`rounded-xl border p-4 ${

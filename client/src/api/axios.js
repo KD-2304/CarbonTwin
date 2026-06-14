@@ -48,6 +48,7 @@ export const userAPI = {
 // ─── QUIZ ─────────────────────────────────────────────────────
 export const quizAPI = {
   submit: (data) => API.post('/quiz/submit', data),
+  getEmissionFactors: () => API.get('/quiz/emission-factors'),
 };
 
 // ─── ACTIONS ──────────────────────────────────────────────────

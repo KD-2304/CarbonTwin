@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
@@ -147,6 +147,12 @@ function Building({ position, height, width, depth, score, index }) {
     cloned.needsUpdate = true;
     return cloned;
   }, [windowGlow, width, height]);
+
+  useEffect(() => {
+    return () => {
+      emissiveTexture.dispose();
+    };
+  }, [emissiveTexture]);
 
   const isClean = score < 2500;
   const isCritical = score > 4000;

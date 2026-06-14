@@ -17,7 +17,9 @@ describe('Quiz and Action Validation API Tests', () => {
       .post('/api/auth/register')
       .send({ name: 'Validation Test User', email: userEmail, password: 'password123' });
     
-    userToken = res.body.token;
+    const cookieHeader = res.headers['set-cookie']?.[0];
+    const match = cookieHeader ? cookieHeader.match(/ctc_token=([^;]+)/) : null;
+    userToken = match ? match[1] : '';
     userId = res.body.user.id;
   });
 

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { quizAPI } from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { calculateBaselineScore } from '../utils/scoreCalculator';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 
 const steps = [
@@ -79,10 +78,11 @@ export default function Onboarding() {
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      const result = calculateBaselineScore(answers);
-      setPreviewScore(result);
-
-      await quizAPI.submit(answers);
+      const { data } = await quizAPI.submit(answers);
+      setPreviewScore({
+        total: data.baselineScore,
+        breakdown: data.scoreBreakdown
+      });
       await refreshUser();
 
       setTimeout(() => navigate('/dashboard'), 3000);
@@ -211,8 +211,9 @@ export default function Onboarding() {
                   ))}
                 </div>
                 <div>
-                  <label className="block text-sm text-sand-300 mb-2 font-medium">Weekly distance (km)</label>
+                  <label htmlFor="transport-distance" className="block text-sm text-sand-300 mb-2 font-medium">Weekly distance (km)</label>
                   <input
+                    id="transport-distance"
                     type="range"
                     min="0"
                     max="500"
@@ -267,8 +268,9 @@ export default function Onboarding() {
                   ))}
                 </div>
                 <div>
-                  <label className="block text-sm text-sand-300 mb-2 font-medium">Monthly electricity usage (kWh)</label>
+                  <label htmlFor="energy-usage" className="block text-sm text-sand-300 mb-2 font-medium">Monthly electricity usage (kWh)</label>
                   <input
+                    id="energy-usage"
                     type="range"
                     min="50"
                     max="1000"
@@ -316,11 +318,13 @@ export default function Onboarding() {
                   <div className="flex items-center gap-4">
                     <button
                       onClick={() => updateAnswer('flights', { ...answers.flights, shortHaul: Math.max(0, answers.flights.shortHaul - 1) })}
+                      aria-label="Decrease short-haul flights"
                       className="w-11 h-11 rounded-xl bg-base-800 border border-sand-100/8 text-sand-100 font-bold hover:bg-base-700 transition-colors text-lg"
                     >−</button>
                     <span className="text-2xl font-extrabold text-sand-100 w-12 text-center">{answers.flights.shortHaul}</span>
                     <button
                       onClick={() => updateAnswer('flights', { ...answers.flights, shortHaul: answers.flights.shortHaul + 1 })}
+                      aria-label="Increase short-haul flights"
                       className="w-11 h-11 rounded-xl bg-base-800 border border-sand-100/8 text-sand-100 font-bold hover:bg-base-700 transition-colors text-lg"
                     >+</button>
                   </div>
@@ -333,11 +337,13 @@ export default function Onboarding() {
                   <div className="flex items-center gap-4">
                     <button
                       onClick={() => updateAnswer('flights', { ...answers.flights, longHaul: Math.max(0, answers.flights.longHaul - 1) })}
+                      aria-label="Decrease long-haul flights"
                       className="w-11 h-11 rounded-xl bg-base-800 border border-sand-100/8 text-sand-100 font-bold hover:bg-base-700 transition-colors text-lg"
                     >−</button>
                     <span className="text-2xl font-extrabold text-sand-100 w-12 text-center">{answers.flights.longHaul}</span>
                     <button
                       onClick={() => updateAnswer('flights', { ...answers.flights, longHaul: answers.flights.longHaul + 1 })}
+                      aria-label="Increase long-haul flights"
                       className="w-11 h-11 rounded-xl bg-base-800 border border-sand-100/8 text-sand-100 font-bold hover:bg-base-700 transition-colors text-lg"
                     >+</button>
                   </div>

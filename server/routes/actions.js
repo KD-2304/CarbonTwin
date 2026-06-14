@@ -55,10 +55,8 @@ router.post('/log', auth, async (req, res) => {
     });
     await actionLog.save();
 
-    // Update user score
-    // Convert daily delta to annual impact (multiply by 365)
-    // But we store the running impact, not annualized
-    user.currentScore = Math.max(0, user.currentScore + (co2Delta * 365 / 365));
+    // Update user score by adding the daily action's CO2 delta directly
+    user.currentScore = Math.max(0, user.currentScore + co2Delta);
     user.weeklyScore = (user.weeklyScore || 0) + co2Delta;
 
     // Update streak

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useScore } from '../context/ScoreContext';
-import { ACTION_OPTIONS } from '../utils/emissionFactors';
 import { Car, UtensilsCrossed, Home, ShoppingBag } from 'lucide-react';
 
 const categoryLabels = {
@@ -17,7 +16,7 @@ export default function ActionLogger() {
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(null);
-  const { logAction } = useScore();
+  const { logAction, actionOptions } = useScore();
 
   const handleLog = async (action) => {
     setSubmitting(true);
@@ -90,7 +89,7 @@ export default function ActionLogger() {
       </div>
 
       <div className="space-y-2">
-        {ACTION_OPTIONS[activeCategory]?.map((action) => (
+        {actionOptions && actionOptions[activeCategory]?.map((action) => (
           <motion.button
             key={action.id}
             whileTap={{ scale: 0.97 }}
