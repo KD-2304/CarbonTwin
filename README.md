@@ -175,12 +175,14 @@ All endpoints are prefixed with `/api`.
 | `POST` | `/api/auth/login` | ✗ | Login and receive JWT |
 | `GET` | `/api/user/profile` | ✓ | Get user profile |
 | `PUT` | `/api/user/profile` | ✓ | Update user profile |
-| `GET` | `/api/actions` | ✓ | Get logged actions |
-| `POST` | `/api/actions` | ✓ | Log a new eco-action |
+| `GET` | `/api/actions/history` | ✓ | Get logged actions history |
+| `GET` | `/api/actions/summary` | ✓ | Get weekly action summary |
+| `POST` | `/api/actions/log` | ✓ | Log a new eco-action |
 | `POST` | `/api/quiz/submit` | ✓ | Submit onboarding quiz |
 | `POST` | `/api/ai/coach` | ✓ | Get AI coaching advice |
 | `GET` | `/api/community/leaderboard` | ✓ | Community leaderboard |
-| `POST` | `/api/simulator/run` | ✓ | Run what-if simulation |
+| `POST` | `/api/simulator/calculate` | ✓ | Run what-if simulation |
+
 
 ---
 

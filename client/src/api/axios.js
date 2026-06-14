@@ -2,8 +2,10 @@ import axios from 'axios';
 
 const API = axios.create({
   baseURL: '/api',
-  headers: { 'Content-Type': 'application/json' }
+  headers: { 'Content-Type': 'application/json' },
+  withCredentials: true
 });
+
 
 // Attach JWT token to every request
 API.interceptors.request.use(config => {
@@ -33,6 +35,7 @@ API.interceptors.response.use(
 export const authAPI = {
   register: (data) => API.post('/auth/register', data),
   login: (data) => API.post('/auth/login', data),
+  logout: () => API.post('/auth/logout'),
 };
 
 // ─── USER ─────────────────────────────────────────────────────

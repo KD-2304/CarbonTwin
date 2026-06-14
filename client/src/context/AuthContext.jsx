@@ -5,11 +5,13 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('ctc_token'));
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (token) {
+    // Silent auth check: only fetch profile if we have a local session indicator
+    const hasLocalSession = localStorage.getItem('ctc_user');
+    if (hasLocalSession) {
       fetchProfile();
     } else {
       setLoading(false);
@@ -20,9 +22,10 @@ export function AuthProvider({ children }) {
     try {
       const { data } = await userAPI.getProfile();
       setUser(data);
+      setToken('cookie_session'); // Dummy token state for backward compatibility
     } catch (error) {
       console.error('Failed to fetch profile:', error);
-      logout();
+      logoutState();
     } finally {
       setLoading(false);
     }
@@ -30,7 +33,6 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const { data } = await authAPI.login({ email, password });
-    localStorage.setItem('ctc_token', data.token);
     localStorage.setItem('ctc_user', JSON.stringify(data.user));
     setToken(data.token);
     setUser(data.user);
@@ -39,19 +41,27 @@ export function AuthProvider({ children }) {
 
   const register = async (userData) => {
     const { data } = await authAPI.register(userData);
-    localStorage.setItem('ctc_token', data.token);
     localStorage.setItem('ctc_user', JSON.stringify(data.user));
     setToken(data.token);
     setUser(data.user);
     return data.user;
   };
 
-  const logout = () => {
-    localStorage.removeItem('ctc_token');
+  const logoutState = () => {
     localStorage.removeItem('ctc_user');
     setToken(null);
     setUser(null);
   };
+
+  const logout = async () => {
+    try {
+      await authAPI.logout();
+    } catch (error) {
+      console.error('API logout failed:', error);
+    }
+    logoutState();
+  };
+
 
   const refreshUser = async () => {
     try {

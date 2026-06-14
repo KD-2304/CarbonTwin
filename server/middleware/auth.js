@@ -2,14 +2,28 @@ const jwt = require('jsonwebtoken');
 
 const auth = (req, res, next) => {
   try {
-    const authHeader = req.header('Authorization');
-    if (!authHeader) {
-      return res.status(401).json({ error: 'No authorization token provided' });
+    let token = null;
+
+    // 1. Try reading from cookie
+    if (req.headers.cookie) {
+      const cookies = req.headers.cookie.split(';').reduce((acc, c) => {
+        const [key, value] = c.split('=').map(item => item.trim());
+        if (key && value) acc[key] = decodeURIComponent(value);
+        return acc;
+      }, {});
+      token = cookies.ctc_token;
     }
 
-    const token = authHeader.replace('Bearer ', '');
+    // 2. Fallback to Authorization header
     if (!token) {
-      return res.status(401).json({ error: 'Invalid token format' });
+      const authHeader = req.header('Authorization');
+      if (authHeader) {
+        token = authHeader.replace('Bearer ', '');
+      }
+    }
+
+    if (!token) {
+      return res.status(401).json({ error: 'No authorization token provided' });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);

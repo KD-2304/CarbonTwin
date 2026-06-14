@@ -5,13 +5,37 @@ const Action = require('../models/Action');
 
 const router = express.Router();
 
+// Lightweight in-memory cache
+const CACHE_TTL = 2 * 60 * 1000; // 2 minutes cache
+const cache = {
+  stats: null,
+  statsExpiry: 0,
+  leaderboard: null,
+  leaderboardExpiry: 0
+};
+
 // GET /api/community/stats
 router.get('/stats', auth, async (req, res) => {
   try {
-    const users = await User.find({ onboardingComplete: true });
-    const totalUsers = users.length;
+    const now = Date.now();
+    if (cache.stats && cache.statsExpiry > now) {
+      return res.json(cache.stats);
+    }
 
-    if (totalUsers === 0) {
+    const statsResult = await User.aggregate([
+      { $match: { onboardingComplete: true } },
+      {
+        $group: {
+          _id: null,
+          totalUsers: { $sum: 1 },
+          totalScore: { $sum: '$currentScore' },
+          totalBaseline: { $sum: '$baselineScore' },
+          weeklyScoreSum: { $sum: { $ifNull: ['$weeklyScore', 0] } }
+        }
+      }
+    ]);
+
+    if (statsResult.length === 0) {
       return res.json({
         totalUsers: 0,
         communityAverage: 4000,
@@ -21,27 +45,31 @@ router.get('/stats', auth, async (req, res) => {
       });
     }
 
-    const totalScore = users.reduce((sum, u) => sum + u.currentScore, 0);
+    const { totalUsers, totalScore, totalBaseline, weeklyScoreSum } = statsResult[0];
     const communityAverage = Math.round(totalScore / totalUsers);
 
     // Calculate total CO₂ saved vs baseline
-    const totalBaseline = users.reduce((sum, u) => sum + u.baselineScore, 0);
     const totalCO2Saved = Math.round(totalBaseline - totalScore);
 
     // Weekly CO₂ saved by all users
-    const weeklyCO2Saved = Math.round(users.reduce((sum, u) => sum + (u.weeklyScore || 0), 0));
+    const weeklyCO2Saved = Math.round(weeklyScoreSum);
 
     // City health: 0-100 scale
     // 100 = community avg at Paris target (2000kg), 0 = at 8000kg+
     const cityHealth = Math.max(0, Math.min(100, Math.round(100 - ((communityAverage - 2000) / 60))));
 
-    res.json({
+    const responsePayload = {
       totalUsers,
       communityAverage,
       totalCO2Saved: Math.max(0, totalCO2Saved),
       weeklyCO2Saved: Math.abs(weeklyCO2Saved),
       cityHealth
-    });
+    };
+
+    cache.stats = responsePayload;
+    cache.statsExpiry = now + CACHE_TTL;
+
+    res.json(responsePayload);
   } catch (error) {
     console.error('Community stats error:', error);
     res.status(500).json({ error: 'Server error' });
@@ -51,43 +79,62 @@ router.get('/stats', auth, async (req, res) => {
 // GET /api/community/leaderboard
 router.get('/leaderboard', auth, async (req, res) => {
   try {
-    // Top users by most CO₂ reduced this week (most negative weeklyScore)
-    const topReducers = await User.find({ onboardingComplete: true })
-      .sort({ weeklyScore: 1 })
-      .limit(10)
-      .select('name currentScore weeklyScore streak');
+    const now = Date.now();
+    let leaderboardData = null;
 
-    // Top users by longest streak
-    const topStreaks = await User.find({ onboardingComplete: true })
-      .sort({ streak: -1 })
-      .limit(10)
-      .select('name currentScore weeklyScore streak');
+    if (cache.leaderboard && cache.leaderboardExpiry > now) {
+      leaderboardData = cache.leaderboard;
+    } else {
+      // Top users by most CO₂ reduced this week (most negative weeklyScore)
+      const topReducers = await User.find({ onboardingComplete: true })
+        .sort({ weeklyScore: 1 })
+        .limit(10)
+        .select('name currentScore weeklyScore streak');
 
-    // Get requesting user's rank
+      // Top users by longest streak
+      const topStreaks = await User.find({ onboardingComplete: true })
+        .sort({ streak: -1 })
+        .limit(10)
+        .select('name currentScore weeklyScore streak');
+
+      const totalUsers = await User.countDocuments({ onboardingComplete: true });
+
+      leaderboardData = {
+        topReducers: topReducers.map(u => ({
+          id: u._id,
+          name: u.name,
+          currentScore: u.currentScore,
+          weeklyDelta: u.weeklyScore || 0,
+          streak: u.streak
+        })),
+        topStreaks: topStreaks.map(u => ({
+          id: u._id,
+          name: u.name,
+          currentScore: u.currentScore,
+          weeklyDelta: u.weeklyScore || 0,
+          streak: u.streak
+        })),
+        totalUsers
+      };
+
+      cache.leaderboard = leaderboardData;
+      cache.leaderboardExpiry = now + CACHE_TTL;
+    }
+
+    // Get requesting user's rank (live query, O(log N) index scan)
     const currentUser = await User.findById(req.userId);
-    const allUsers = await User.find({ onboardingComplete: true })
-      .sort({ weeklyScore: 1 })
-      .select('_id');
+    let userRank = 0;
 
-    const userRank = allUsers.findIndex(u => u._id.toString() === req.userId) + 1;
+    if (currentUser && currentUser.onboardingComplete) {
+      userRank = await User.countDocuments({
+        onboardingComplete: true,
+        weeklyScore: { $lt: currentUser.weeklyScore || 0 }
+      }) + 1;
+    }
 
     res.json({
-      topReducers: topReducers.map(u => ({
-        id: u._id,
-        name: u.name,
-        currentScore: u.currentScore,
-        weeklyDelta: u.weeklyScore || 0,
-        streak: u.streak
-      })),
-      topStreaks: topStreaks.map(u => ({
-        id: u._id,
-        name: u.name,
-        currentScore: u.currentScore,
-        weeklyDelta: u.weeklyScore || 0,
-        streak: u.streak
-      })),
-      userRank,
-      totalUsers: allUsers.length
+      ...leaderboardData,
+      userRank
     });
   } catch (error) {
     console.error('Leaderboard error:', error);

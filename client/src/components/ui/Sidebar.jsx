@@ -45,7 +45,7 @@ export default function Sidebar() {
       <div className="mx-5 h-px bg-sand-100/5" />
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4">
+      <nav role="navigation" aria-label="Main Navigation" className="flex-1 px-3 py-4">
         <p className="meta-label px-3 pb-3">Workspace</p>
         <div className="space-y-1">
           {navItems.map((item) => {
@@ -54,6 +54,7 @@ export default function Sidebar() {
               <NavLink
                 key={item.path}
                 to={item.path}
+                aria-label={`Navigate to ${item.label}`}
                 className={({ isActive }) =>
                   `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all duration-200 ${
                     isActive
@@ -84,12 +85,13 @@ export default function Sidebar() {
               <p className="truncate text-xs text-sand-500">{user?.email || ''}</p>
             </div>
           </div>
-          <button onClick={handleLogout} className="mt-3 w-full flex items-center justify-center gap-2 rounded-lg border border-sand-100/8 bg-sand-100/[0.03] py-2 text-xs font-semibold text-sand-400 hover:bg-sand-100/[0.06] hover:text-sand-200 transition-all">
+          <button onClick={handleLogout} aria-label="Sign Out of Carbon Twin" className="mt-3 w-full flex items-center justify-center gap-2 rounded-lg border border-sand-100/8 bg-sand-100/[0.03] py-2 text-xs font-semibold text-sand-400 hover:bg-sand-100/[0.06] hover:text-sand-200 transition-all">
             <LogOut size={13} />
             Sign Out
           </button>
         </div>
       </div>
+
     </motion.aside>
   );
 }

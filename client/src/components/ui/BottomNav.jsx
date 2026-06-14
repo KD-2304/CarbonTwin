@@ -12,7 +12,7 @@ const navItems = [
 
 export default function BottomNav() {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-sand-100/5 bg-base-950/90 px-3 pb-2 pt-1.5 backdrop-blur-2xl md:hidden">
+    <nav role="navigation" aria-label="Mobile Navigation" className="fixed inset-x-0 bottom-0 z-50 border-t border-sand-100/5 bg-base-950/90 px-3 pb-2 pt-1.5 backdrop-blur-2xl md:hidden">
       <div className="grid grid-cols-5 gap-1">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -20,7 +20,9 @@ export default function BottomNav() {
             <NavLink
               key={item.path}
               to={item.path}
+              aria-label={`Navigate to ${item.label}`}
               className={({ isActive }) =>
+
                 `relative flex min-h-[52px] flex-col items-center justify-center gap-0.5 rounded-xl text-[10px] font-semibold transition-all ${
                   isActive
                     ? 'text-sage-400'
