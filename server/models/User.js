@@ -91,7 +91,11 @@ const userSchema = new mongoose.Schema({
   dailySnapshots: [{
     date: { type: Date },
     score: { type: Number }
-  }]
+  }],
+  lastWeeklyReset: {
+    type: Date,
+    default: Date.now
+  }
 }, {
   timestamps: true
 });

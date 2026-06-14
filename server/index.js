@@ -31,11 +31,32 @@ const apiLimiter = rateLimit({
 app.use('/api', apiLimiter);
 
 // ─── MIDDLEWARE ────────────────────────────────────────────────
+const clientOrigin = process.env.CLIENT_URL || (process.env.NODE_ENV === 'production' ? null : 'http://localhost:5173');
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (same-origin, tools, or mobile apps)
+    if (!origin || origin === clientOrigin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
-app.use(express.json({ limit: '100kb' }));
+
+app.use(express.json({ limit: '10kb' }));
+
+// Anti-CSRF validation middleware for mutating requests
+app.use((req, res, next) => {
+  if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
+    if (req.headers['x-ctc-request'] !== 'true' && process.env.NODE_ENV !== 'test') {
+      return res.status(403).json({ error: 'CSRF Protection: Missing required request header' });
+    }
+  }
+  next();
+});
+
 
 
 // ─── ROUTES ───────────────────────────────────────────────────

@@ -113,6 +113,7 @@ export default function Simulator() {
                     role="switch"
                     aria-checked={isActive ? "true" : "false"}
                     aria-label={item.label}
+                    aria-describedby={`desc-${item.id}`}
                     className={`flex min-h-[120px] items-start justify-between gap-4 rounded-xl border p-4 text-left transition-all ${
                       isActive
                         ? 'border-sage-400/30 bg-sage-400/8 shadow-lg shadow-sage-400/5'
@@ -121,7 +122,7 @@ export default function Simulator() {
                   >
                     <div>
                       <p className="text-sm font-bold text-sand-100">{item.label}</p>
-                      <p className="mt-2 text-sm leading-relaxed text-sand-500">{item.description}</p>
+                      <p id={`desc-${item.id}`} className="mt-2 text-sm leading-relaxed text-sand-500">{item.description}</p>
                     </div>
                     <span className={`mt-1 flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition-colors ${
                       isActive ? 'bg-sage-400' : 'bg-base-700'

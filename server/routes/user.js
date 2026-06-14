@@ -5,11 +5,34 @@ const { getStreakStatus } = require('../services/scoreService');
 
 const router = express.Router();
 
+// Helper to get start of the week (Monday 00:00:00)
+function getStartOfWeek(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  // Get days to subtract to reach Monday (1). Sunday (0) -> subtract 6 days.
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(d.setDate(diff));
+  monday.setHours(0, 0, 0, 0);
+  return monday;
+}
+
 // GET /api/user/profile
 router.get('/profile', auth, async (req, res) => {
   try {
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Lazy Reset Check: Ensure weeklyScore is reset if transitioning to a new calendar week
+    const now = new Date();
+    const lastReset = user.lastWeeklyReset || user.createdAt || now;
+    const startOfCurrentWeek = getStartOfWeek(now);
+    const startOfLastResetWeek = getStartOfWeek(lastReset);
+
+    if (startOfCurrentWeek.getTime() > startOfLastResetWeek.getTime()) {
+      user.weeklyScore = 0;
+      user.lastWeeklyReset = now;
+      await user.save();
+    }
 
     const streakStatus = getStreakStatus(user.lastLogDate, user.streak);
 

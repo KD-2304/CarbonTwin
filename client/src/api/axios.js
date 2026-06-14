@@ -7,12 +7,9 @@ const API = axios.create({
 });
 
 
-// Attach JWT token to every request
+// Attach custom security header to every request for CSRF protection
 API.interceptors.request.use(config => {
-  const token = localStorage.getItem('ctc_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  config.headers['X-CTC-Request'] = 'true';
   return config;
 });
 
@@ -21,7 +18,6 @@ API.interceptors.response.use(
   response => response,
   error => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('ctc_token');
       localStorage.removeItem('ctc_user');
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
@@ -30,6 +26,7 @@ API.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 
 // ─── AUTH ─────────────────────────────────────────────────────
 export const authAPI = {

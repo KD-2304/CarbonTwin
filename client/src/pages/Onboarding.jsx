@@ -198,10 +198,12 @@ export default function Onboarding() {
             {/* Transport step */}
             {step === 0 && (
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Transport Mode selection">
                   {transportModes.map(mode => (
                     <button
                       key={mode.value}
+                      role="radio"
+                      aria-checked={answers.transport.mode === mode.value}
                       onClick={() => updateAnswer('transport', { ...answers.transport, mode: mode.value })}
                       className={gridOptionClass(answers.transport.mode === mode.value)}
                     >
@@ -232,10 +234,12 @@ export default function Onboarding() {
 
             {/* Diet step */}
             {step === 1 && (
-              <div className="space-y-2">
+              <div className="space-y-2" role="radiogroup" aria-label="Diet selection">
                 {dietOptions.map(option => (
                   <button
                     key={option.value}
+                    role="radio"
+                    aria-checked={answers.diet === option.value}
                     onClick={() => updateAnswer('diet', option.value)}
                     className={optionButtonClass(answers.diet === option.value)}
                   >
@@ -252,10 +256,12 @@ export default function Onboarding() {
             {/* Energy step */}
             {step === 2 && (
               <div className="space-y-4">
-                <div className="space-y-2">
+                <div className="space-y-2" role="radiogroup" aria-label="Energy Source selection">
                   {energySources.map(src => (
                     <button
                       key={src.value}
+                      role="radio"
+                      aria-checked={answers.energy.source === src.value}
                       onClick={() => updateAnswer('energy', { ...answers.energy, source: src.value })}
                       className={optionButtonClass(answers.energy.source === src.value)}
                     >
@@ -290,10 +296,12 @@ export default function Onboarding() {
 
             {/* Shopping step */}
             {step === 3 && (
-              <div className="space-y-2">
+              <div className="space-y-2" role="radiogroup" aria-label="Shopping Level selection">
                 {shoppingLevels.map(level => (
                   <button
                     key={level.value}
+                    role="radio"
+                    aria-checked={answers.shopping === level.value}
                     onClick={() => updateAnswer('shopping', level.value)}
                     className={optionButtonClass(answers.shopping === level.value)}
                   >

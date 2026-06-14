@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import ActionLogger from '../components/ActionLogger.jsx';
 import Simulator from '../pages/Simulator.jsx';
 import { ScoreProvider } from '../context/ScoreContext.jsx';
@@ -159,23 +159,37 @@ describe('ActionLogger Component', () => {
 });
 
 describe('Simulator Page', () => {
-  it('renders simulator page with target score', () => {
+  it('renders simulator page with target score', async () => {
     render(<Simulator />);
     expect(screen.getByText('What-If Simulator')).toBeDefined();
     expect(screen.getByText('Scenario Lab')).toBeDefined();
     expect(screen.getByText('Score Projection')).toBeDefined();
+
+    // Wait for simulated calculate API response state update
+    await waitFor(() => {
+      expect(screen.getByText('No annual savings yet.')).toBeDefined();
+    });
   });
 
   it('toggles lifestyle switches', async () => {
     render(<Simulator />);
+
+    // Wait for initial render state resolution
+    await waitFor(() => {
+      expect(screen.getByText('No annual savings yet.')).toBeDefined();
+    });
     
     // Toggle Switch to renewable energy
     const renewableButton = screen.getByText('Switch to renewable energy');
     expect(renewableButton).toBeDefined();
     
-    fireEvent.click(renewableButton);
+    await act(async () => {
+      fireEvent.click(renewableButton);
+    });
     
     // Verified simulated change triggers re-calculation
-    expect(screen.getByText('1 selected')).toBeDefined();
+    await waitFor(() => {
+      expect(screen.getByText('1 selected')).toBeDefined();
+    });
   });
 });

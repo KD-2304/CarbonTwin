@@ -107,31 +107,46 @@ export default function Reports() {
                 </div>
               </div>
 
-              {report.summary && (
-                <p className="mb-5 text-sm leading-relaxed text-sand-300">{report.summary}</p>
+              {report.summary === 'Generating...' ? (
+                <div className="py-2 flex flex-col gap-3">
+                  <div className="flex items-center gap-2.5 text-xs text-sand-400 font-medium">
+                    <div className="h-3.5 w-3.5 border-2 border-teal-400/25 border-t-teal-400 rounded-full animate-spin" />
+                    <span>Your AI Coach is compiling the weekly insights...</span>
+                  </div>
+                  <div className="space-y-2.5 mt-1">
+                    <div className="h-3.5 w-full rounded bg-sand-100/6 animate-pulse" />
+                    <div className="h-3.5 w-3/4 rounded bg-sand-100/6 animate-pulse" />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {report.summary && (
+                    <p className="mb-5 text-sm leading-relaxed text-sand-300">{report.summary}</p>
+                  )}
+
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {report.insight && (
+                      <div className="surface-soft rounded-xl p-4 border-l-2 border-teal-400">
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <Lightbulb size={12} className="text-teal-400" />
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-teal-400">Insight</p>
+                        </div>
+                        <p className="text-sm text-sand-300 leading-relaxed">{report.insight}</p>
+                      </div>
+                    )}
+
+                    {report.goal && (
+                      <div className="surface-soft rounded-xl p-4 border-l-2 border-sage-400">
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <Target size={12} className="text-sage-400" />
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-sage-400">Next goal</p>
+                        </div>
+                        <p className="text-sm text-sand-300 leading-relaxed">{report.goal}</p>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {report.insight && (
-                  <div className="surface-soft rounded-xl p-4 border-l-2 border-teal-400">
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <Lightbulb size={12} className="text-teal-400" />
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-teal-400">Insight</p>
-                    </div>
-                    <p className="text-sm text-sand-300 leading-relaxed">{report.insight}</p>
-                  </div>
-                )}
-
-                {report.goal && (
-                  <div className="surface-soft rounded-xl p-4 border-l-2 border-sage-400">
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <Target size={12} className="text-sage-400" />
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-sage-400">Next goal</p>
-                    </div>
-                    <p className="text-sm text-sand-300 leading-relaxed">{report.goal}</p>
-                  </div>
-                )}
-              </div>
 
               {report.categoryBreakdown && Object.keys(report.categoryBreakdown).length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-2">

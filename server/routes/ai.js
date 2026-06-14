@@ -97,17 +97,47 @@ router.post('/weekly-report', auth, async (req, res) => {
       timestamp: { $gte: weekStart }
     });
 
-    const userData = await getUserDataForAI(req.userId);
-    const reportData = await generateWeeklyReport(userData, weekActions);
+    const totalDelta = weekActions.reduce((sum, a) => sum + a.co2Delta, 0);
+    const categoryTotals = {};
+    weekActions.forEach(a => {
+      categoryTotals[a.category] = (categoryTotals[a.category] || 0) + a.co2Delta;
+    });
 
+    // Create report document immediately with a generating placeholder status
     const report = new WeeklyReport({
       userId: req.userId,
       weekStart,
-      ...reportData
+      summary: 'Generating...', // Special sentinel for frontend loading states
+      insight: 'Analyzing your habits...',
+      goal: 'Calculating goals...',
+      totalDelta,
+      actionsCount: weekActions.length,
+      categoryBreakdown: categoryTotals
     });
     await report.save();
 
-    res.json(report);
+    // Trigger AI compilation in the background asynchronously
+    setImmediate(async () => {
+      try {
+        const userData = await getUserDataForAI(req.userId);
+        const reportData = await generateWeeklyReport(userData, weekActions);
+        
+        await WeeklyReport.findByIdAndUpdate(report._id, {
+          summary: reportData.summary || `Logged ${weekActions.length} actions this week.`,
+          insight: reportData.insight || '',
+          goal: reportData.goal || '',
+        });
+      } catch (err) {
+        console.error('Background weekly report AI generation failed:', err);
+        await WeeklyReport.findByIdAndUpdate(report._id, {
+          summary: `This week you logged ${weekActions.length} actions with a net impact of ${totalDelta.toFixed(1)} kg CO₂.`,
+          insight: 'AI insight currently unavailable.',
+          goal: 'Keep logging your daily actions to track progress.'
+        });
+      }
+    });
+
+    res.status(202).json(report);
   } catch (error) {
     console.error('Weekly report error:', error);
     res.status(500).json({ error: 'Failed to generate report' });

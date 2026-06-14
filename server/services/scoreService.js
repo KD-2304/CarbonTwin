@@ -96,7 +96,11 @@ function updateStreak(lastLogDate, currentStreak) {
   const now = new Date();
   const last = new Date(lastLogDate);
   const hoursSince = (now - last) / (1000 * 60 * 60);
-  const daysSince = Math.floor(hoursSince / 24);
+  
+  // Calculate calendar day difference using midnight timestamps
+  const nowMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const lastMidnight = new Date(last.getFullYear(), last.getMonth(), last.getDate());
+  const daysSince = Math.round((nowMidnight - lastMidnight) / (1000 * 60 * 60 * 24));
 
   if (daysSince === 0) {
     // Same day, no change

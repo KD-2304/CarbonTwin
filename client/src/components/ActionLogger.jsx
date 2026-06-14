@@ -68,12 +68,14 @@ export default function ActionLogger() {
         )}
       </AnimatePresence>
 
-      <div className="segmented mb-4 grid grid-cols-4">
+      <div className="segmented mb-4 grid grid-cols-4" role="tablist" aria-label="Action categories">
         {Object.entries(categoryLabels).map(([key, cat]) => {
           const Icon = cat.icon;
           return (
             <button
               key={key}
+              role="tab"
+              aria-selected={activeCategory === key}
               onClick={() => setActiveCategory(key)}
               className={`flex flex-col items-center gap-1 px-2 py-2.5 text-[10px] font-bold transition-all rounded-lg ${
                 activeCategory === key
