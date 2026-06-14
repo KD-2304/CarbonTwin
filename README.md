@@ -1,201 +1,189 @@
-# 🌍 Carbon Twin City
+<div align="center">
+  <img src="./logo.svg" alt="Carbon Twin City Logo" width="120" height="120" />
 
-> Track and reduce your carbon footprint through a personalized 3D avatar and shared community city.
+  # 🌍 Carbon Twin City
 
-Carbon Twin City is a full-stack web application that gamifies carbon footprint tracking. Users log daily actions, receive AI-powered coaching, compete on leaderboards, and watch a shared 3D city evolve based on the community's collective environmental impact.
+  > Track, visualize, and reduce your carbon footprint through a personalized 3D avatar and a shared community city.
+
+  [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-blue.svg?style=for-the-badge&logo=node.js)](https://nodejs.org)
+  [![React Version](https://img.shields.io/badge/react-19.x-blue.svg?style=for-the-badge&logo=react)](https://react.dev)
+  [![Vite Version](https://img.shields.io/badge/vite-8.x-64748b.svg?style=for-the-badge&logo=vite)](https://vite.dev)
+  [![Tailwind CSS](https://img.shields.io/badge/tailwind-v4-38bdf8.svg?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com)
+  [![License](https://img.shields.io/badge/license-private-red.svg?style=for-the-badge)](https://choosealicense.com/)
+
+  [Key Features](#-key-features) • [Tech Stack](#%EF%B8%8F-tech-stack) • [Architecture](#%EF%B8%8F-architecture) • [Getting Started](#-getting-started) • [API Reference](#-api-endpoints) • [Contributing](#-contributing)
+</div>
 
 ---
 
-## ✨ Features
+## 🚀 Key Features
 
-| Feature | Description |
-| --- | --- |
-| **Dashboard** | Real-time overview of your carbon score, daily actions, and weekly trends |
-| **3D Twin City** | Interactive Three.js city that reflects the community's carbon footprint |
-| **AI Coach** | Google Gemini-powered personalized sustainability tips |
-| **Action Logger** | Log daily eco-actions (transport, diet, energy) and earn points |
-| **Simulator** | "What-if" scenario simulator to see the impact of lifestyle changes |
-| **Leaderboard** | Community rankings to encourage friendly competition |
-| **Weekly Reports** | Auto-generated reports tracking your progress over time |
-| **Onboarding Quiz** | Personalized onboarding that calibrates your baseline carbon score |
-| **Auth System** | JWT-based authentication with secure password hashing |
+*   **📊 Personal Carbon Dashboard:** A real-time hub tracking your annual carbon footprint, consecutive log streaks, and weekly emission savings.
+*   **🎮 3D Twin City:** An interactive 3D virtual world rendered via Three.js (React Three Fiber) reflecting your community's collective ecological health.
+*   **🤖 AI Coach:** Personalized, actionable tips generated dynamically by the Google Gemini API to target your highest emission areas.
+*   **📝 Daily Action Logger:** Quick-log eco-conscious daily routines (diet, travel, home energy, and shopping) and witness instant score feedback.
+*   **🧪 What-If Simulator:** A scenario testing laboratory projecting potential carbon savings before committing to lifestyle modifications.
+*   **🏆 Community Leaderboard:** Friendly competition rankings tracking weekly carbon reduction achievements and top streaks.
+*   **📋 Personalized Onboarding:** An interactive baseline quiz analyzing lifestyle habits to calibrate initial footprints.
 
 ---
 
 ## 🛠️ Tech Stack
 
-### Client
-- **React 19** with Vite 8
-- **React Three Fiber** + **Drei** — 3D city rendering
-- **Tailwind CSS 4** — Utility-first styling
-- **Framer Motion** — Page transitions and micro-animations
-- **Recharts** — Data visualization for reports and dashboards
-- **React Router v7** — Client-side routing
-- **Axios** — HTTP client with interceptors
+### Client (Frontend)
+*   **React 19 & Vite 8:** Next-generation rendering speeds and Hot Module Replacement (HMR).
+*   **React Three Fiber (R3F) & Drei:** WebGL-based Three.js rendering for the 3D twin avatar and community city.
+*   **Tailwind CSS v4 & Framer Motion:** Modern utility-first styling combined with fluent transition micro-animations.
+*   **Recharts:** Beautiful, responsive SVG charts tracking score progressions.
+*   **React Router v7:** Modern, declaratively styled application shell routing.
 
-### Server
-- **Node.js** with **Express 4**
-- **MongoDB** via **Mongoose 8**
-- **Google Gemini SDK** — AI-powered coaching
-- **JWT** — Stateless authentication
-- **bcryptjs** — Password hashing
-
-### Dev Tools
-- **Concurrently** — Run client and server in parallel
-- **ESLint** — Linting for the client
+### Server (Backend)
+*   **Node.js & Express 4:** Fast, minimalist backend web framework.
+*   **MongoDB & Mongoose 8:** Document-based database configuration supporting indexed performance lookups.
+*   **Google Gemini SDK:** Dynamic, prompt-engineered AI coaching and insight synthesis.
+*   **JWT & Bcryptjs:** Stateless authentication architecture utilizing secure, HttpOnly, SameSite-secured token cookies.
 
 ---
 
-## 📁 Project Structure
+## 🖥️ Architecture
 
-```
-carbon-twin-city/
-├── client/                    # React + Vite frontend
-│   ├── public/                # Static assets
-│   ├── src/
-│   │   ├── api/               # Axios instance & interceptors
-│   │   ├── assets/            # Images, icons
-│   │   ├── components/
-│   │   │   ├── charts/        # Recharts chart components
-│   │   │   ├── city/          # 3D city scene components
-│   │   │   ├── twin/          # Twin avatar components
-│   │   │   ├── ui/            # Shared UI (Sidebar, BottomNav, ProtectedRoute)
-│   │   │   ├── ActionLogger.jsx
-│   │   │   └── AiCoach.jsx
-│   │   ├── context/           # React context providers
-│   │   │   ├── AuthContext.jsx
-│   │   │   └── ScoreContext.jsx
-│   │   ├── pages/             # Route-level page components
-│   │   │   ├── City.jsx
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── Leaderboard.jsx
-│   │   │   ├── Login.jsx
-│   │   │   ├── Onboarding.jsx
-│   │   │   ├── Register.jsx
-│   │   │   ├── Reports.jsx
-│   │   │   └── Simulator.jsx
-│   │   ├── utils/             # Emission factors & score calculator
-│   │   ├── __tests__/         # Component tests (co-located for React deps)
-│   │   │   └── App.test.jsx
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
-│   ├── vite.config.js
-│   └── package.json
-│
-├── server/                    # Express API backend
-│   ├── middleware/
-│   │   └── auth.js            # JWT authentication middleware
-│   ├── models/
-│   │   ├── Action.js          # Logged eco-action schema
-│   │   ├── User.js            # User profile & carbon data schema
-│   │   └── WeeklyReport.js    # Weekly report schema
-│   ├── routes/
-│   │   ├── actions.js         # CRUD for carbon actions
-│   │   ├── ai.js              # AI coaching endpoint
-│   │   ├── auth.js            # Login / Register
-│   │   ├── community.js       # Leaderboard & community data
-│   │   ├── quiz.js            # Onboarding quiz
-│   │   ├── simulator.js       # What-if scenario API
-│   │   └── user.js            # User profile management
-│   ├── services/
-│   │   ├── aiService.js       # Google Gemini integration
-│   │   └── scoreService.js    # Carbon score computation
-│   ├── index.js               # Server entry point
-│   ├── seed.js                # Database seed script
-│   ├── .env.example           # Environment variable template
-│   └── package.json
-│
-├── tests/                     # Test suite (see SETUP.md for details)
-│   ├── client/                # Frontend utility tests
-│   │   └── scoreCalculator.test.js
-│   ├── server/                # Backend tests
-│   │   ├── auth.test.js
-│   │   ├── health.test.js
-│   │   └── scoreService.test.js
-│   └── README.md              # Test documentation
-│
-├── package.json               # Root workspace (concurrently)
-├── README.md                  # ← You are here
-└── SETUP.md                   # Detailed setup & deployment guide
+```mermaid
+graph TD
+    subgraph Client [Client - React 19 / Vite]
+        A[App Shell] --> B[Dashboard]
+        A --> C[3D Twin City]
+        A --> D[What-If Simulator]
+        A --> E[AI Coach Chat]
+        F[Axios Interceptors] -- JWT / X-CTC-Request Header --> G[Express API]
+    end
+
+    subgraph Server [Backend - Node.js / Express]
+        G --> H[Auth Middleware]
+        H --> I[Score Service]
+        H --> J[AI Service]
+        I --> K[(MongoDB / Mongoose)]
+        J -- Google Gemini API Key --> L[Google Gemini API]
+    end
+    
+    classDef client fill:#7cb77f,stroke:#3d7c40,stroke-width:1px,color:#ffffff;
+    classDef server fill:#4db8a4,stroke:#339985,stroke-width:1px,color:#ffffff;
+    classDef external fill:#e5a548,stroke:#c88a2e,stroke-width:1px,color:#ffffff;
+    
+    class A,B,C,D,E,F client;
+    class G,H,I,K server;
+    class L external;
 ```
 
 ---
 
-## 🚀 Quick Start
+## 🚦 Getting Started
 
-> For the full setup guide (MongoDB, environment variables, deployment), see [SETUP.md](./SETUP.md).
+### Prerequisites
 
+Verify that Node.js (v18+) and MongoDB are installed on your environment:
 ```bash
-# 1. Clone the repository
-git clone <repository-url>
-cd carbon-twin-city
-
-# 2. Install all dependencies (root + server + client)
-npm run install:all
-
-# 3. Configure environment variables
-cp server/.env.example server/.env
-# Edit server/.env with your MongoDB URI, JWT secret, and Gemini API key
-
-# 4. (Optional) Seed the database with sample data
-npm run seed
-
-# 5. Start the development servers
-npm run dev
+node --version
+npm --version
+mongod --version # If running a local DB
 ```
 
-The client runs on **http://localhost:5173** and the server on **http://localhost:5000**.
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd carbon-twin-city
+   ```
+
+2. **Install all workspace dependencies:**
+   This command installs node packages for the **Root**, **Server**, and **Client** directories concurrently:
+   ```bash
+   npm run install:all
+   ```
+
+3. **Configure Environment Variables:**
+   Copy the template environment file in the `server` directory:
+   ```bash
+   cp server/.env.example server/.env
+   ```
+   Open `server/.env` and update configuration secrets:
+   ```env
+   PORT=5000
+   MONGO_URI=mongodb://localhost:27017/carbon-twin-city
+   JWT_SECRET=your_super_secure_jwt_secret
+   GEMINI_API_KEY=your_gemini_api_key_from_google_ai_studio
+   CLIENT_URL=http://localhost:5173
+   ```
+
+4. **Seed Database (Optional):**
+   Seed your database collections with mock users, metrics, and logs for immediate testing:
+   ```bash
+   npm run seed
+   ```
+
+5. **Start Development Servers:**
+   Launch both backend (port 5000) and frontend (port 5173) in watch mode:
+   ```bash
+   npm run dev
+   ```
 
 ---
 
-## 📜 Available Scripts
+## 🧪 Testing
 
-Run these from the **project root**:
+Automated test suites utilize **Jest** for API routes/services and **Vitest** + **React Testing Library** for components.
 
-| Script | Command | Description |
-| --- | --- | --- |
-| `dev` | `npm run dev` | Start both client & server concurrently |
-| `server` | `npm run server` | Start only the API server (with `--watch`) |
-| `client` | `npm run client` | Start only the Vite dev server |
-| `install:all` | `npm run install:all` | Install dependencies for root, server, and client |
-| `seed` | `npm run seed` | Seed MongoDB with sample data |
-| `build` | `npm run build` | Build the client for production |
+Run all tests from the root directory:
+```bash
+npm test          # Run all frontend & backend tests
+npm run test:server # Run API endpoint and logic tests
+npm run test:client # Run React UI component and calculator tests
+```
 
 ---
 
 ## 🔌 API Endpoints
 
-All endpoints are prefixed with `/api`.
+All backend routes are prefixed with `/api`. Modifying endpoints require the `X-CTC-Request: true` header for CSRF protection.
 
 | Method | Endpoint | Auth | Description |
-| --- | --- | --- | --- |
-| `GET` | `/api/health` | ✗ | Health check |
-| `POST` | `/api/auth/register` | ✗ | Register a new user |
-| `POST` | `/api/auth/login` | ✗ | Login and receive JWT |
-| `GET` | `/api/user/profile` | ✓ | Get user profile |
-| `PUT` | `/api/user/profile` | ✓ | Update user profile |
-| `GET` | `/api/actions/history` | ✓ | Get logged actions history |
-| `GET` | `/api/actions/summary` | ✓ | Get weekly action summary |
-| `POST` | `/api/actions/log` | ✓ | Log a new eco-action |
-| `POST` | `/api/quiz/submit` | ✓ | Submit onboarding quiz |
-| `POST` | `/api/ai/coach` | ✓ | Get AI coaching advice |
-| `GET` | `/api/community/leaderboard` | ✓ | Community leaderboard |
-| `POST` | `/api/simulator/calculate` | ✓ | Run what-if simulation |
-
+| :--- | :--- | :---: | :--- |
+| `POST` | `/api/auth/register` | ✗ | Create a new user profile & issue token cookie |
+| `POST` | `/api/auth/login` | ✗ | Login credentials validation |
+| `POST` | `/api/auth/logout` | ✗ | Clear token session cookie |
+| `GET` | `/api/user/profile` | ✓ | Retrieve authenticated profile |
+| `PUT` | `/api/user/profile` | ✓ | Update name, city, or location details |
+| `GET` | `/api/actions/history` | ✓ | Fetch action logs history (default: 7 days) |
+| `GET` | `/api/actions/summary` | ✓ | Fetch weekly action totals and category delta sums |
+| `POST` | `/api/actions/log` | ✓ | Log a new eco-action (Diet, Travel, Home, Shopping) |
+| `POST` | `/api/quiz/submit` | ✓ | Submit onboarding survey to compute baseline |
+| `POST` | `/api/ai/coach` | ✓ | Chat dynamically with Gemini Carbon Coach |
+| `GET` | `/api/community/leaderboard`| ✓ | Retrieve top reducers and streak achievers |
+| `POST` | `/api/simulator/calculate` | ✓ | Run projections on modified lifestyle answers |
 
 ---
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Commit your changes: `git commit -m "feat: add new feature"`
-4. Push to the branch: `git push origin feature/my-feature`
-5. Open a Pull Request
+We welcome contributions to help improve Carbon Twin City! To contribute:
+
+1. **Fork** the repository and create your feature branch:
+   ```bash
+   git checkout -b feat/your-awesome-feature
+   ```
+2. Follow our commit naming convention (based on Angular Commit Guidelines):
+   - `feat: add carbon badges`
+   - `fix: resolve auth cookie crash`
+   - `docs: update deployment links`
+3. Commit and push your changes:
+   ```bash
+   git commit -m "feat: your descriptive commit message"
+   git push origin feat/your-awesome-feature
+   ```
+4. Open a **Pull Request** explaining your implementation details.
 
 ---
 
 ## 📄 License
 
-This project is private and not licensed for public distribution.
+MIT License
