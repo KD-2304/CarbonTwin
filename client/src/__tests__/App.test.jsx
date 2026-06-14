@@ -33,6 +33,19 @@ vi.mock('@react-three/drei', () => ({
   Text: ({ children }) => <span>{children}</span>,
 }));
 
+// Mock custom WebGL canvas components to prevent rendering R3F elements in DOM
+vi.mock('../components/twin/CarbonTwin', () => ({
+  default: () => <div data-testid="carbon-twin">Mock Carbon Twin</div>
+}));
+
+vi.mock('../components/city/CarbonCity', () => ({
+  default: () => <div data-testid="carbon-city">Mock Carbon City</div>
+}));
+
+vi.mock('../components/landing/InteractiveEcoGlobe', () => ({
+  default: () => <div data-testid="interactive-eco-globe">Mock Eco Globe</div>
+}));
+
 describe('App Component', () => {
   beforeEach(() => {
     // Clear localStorage before each test

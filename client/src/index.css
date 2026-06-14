@@ -10,12 +10,12 @@
   --color-base-600: #3a4050;
 
   /* ── Warm neutrals ── */
-  --color-sand-100: #f0ece4;
-  --color-sand-200: #ddd7cb;
-  --color-sand-300: #b8b0a2;
-  --color-sand-400: #918a7e;
-  --color-sand-500: #6e685e;
-  --color-sand-600: #4a463f;
+  --color-sand-100: #fcf8f0;
+  --color-sand-200: #ece4d5;
+  --color-sand-300: #cfc5b4;
+  --color-sand-400: #b0a695;
+  --color-sand-500: #8e8576;
+  --color-sand-600: #7c7468;
 
   /* ── Accent palette ── */
   --color-sage-400: #7cb77f;

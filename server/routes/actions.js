@@ -15,6 +15,29 @@ router.post('/log', auth, async (req, res) => {
       return res.status(400).json({ error: 'Category and action are required' });
     }
 
+    // Input validation checks
+    const validActions = {
+      transport: ['took_car', 'public_transit', 'cycled_walked', 'work_from_home'],
+      meal: ['vegan_meal', 'vegetarian_meal', 'meat_meal', 'local_produce'],
+      home: ['ac_off_4hrs', 'air_dry_laundry', 'reduced_heating'],
+      shopping: ['secondhand_item', 'avoid_plastic', 'new_electronics']
+    };
+
+    if (!validActions[category]) {
+      return res.status(400).json({ error: 'Invalid action category' });
+    }
+
+    if (!validActions[category].includes(action)) {
+      return res.status(400).json({ error: 'Invalid action for category' });
+    }
+
+    if (category === 'transport' && (action === 'took_car' || action === 'cycled_walked')) {
+      const parsedKm = Number(km);
+      if (isNaN(parsedKm) || parsedKm < 0 || parsedKm > 1000) {
+        return res.status(400).json({ error: 'Distance must be a positive number under 1,000 km' });
+      }
+    }
+
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -60,6 +83,10 @@ router.post('/log', auth, async (req, res) => {
       weeklyScore: user.weeklyScore
     });
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ error: messages.join(', ') });
+    }
     console.error('Log action error:', error);
     res.status(500).json({ error: 'Server error' });
   }

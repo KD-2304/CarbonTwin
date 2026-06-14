@@ -15,6 +15,41 @@ router.post('/submit', auth, async (req, res) => {
       return res.status(400).json({ error: 'All quiz fields are required' });
     }
 
+    // Input validation checks
+    const validDiet = ['vegan', 'vegetarian', 'pescatarian', 'omnivore', 'heavy_meat'];
+    const validTransport = ['car_petrol', 'car_diesel', 'car_electric', 'bike', 'public_transit', 'walk'];
+    const validEnergy = ['renewable', 'mixed', 'coal'];
+    const validShopping = ['minimal', 'average', 'frequent'];
+
+    if (!validDiet.includes(diet)) {
+      return res.status(400).json({ error: 'Invalid diet type' });
+    }
+    if (!validShopping.includes(shopping)) {
+      return res.status(400).json({ error: 'Invalid shopping habit' });
+    }
+    if (!transport.mode || !validTransport.includes(transport.mode)) {
+      return res.status(400).json({ error: 'Invalid transport mode' });
+    }
+    const weeklyKm = Number(transport.weeklyKm);
+    if (isNaN(weeklyKm) || weeklyKm < 0 || weeklyKm > 10000) {
+      return res.status(400).json({ error: 'Weekly distance must be a positive number under 10,000 km' });
+    }
+    if (!energy.source || !validEnergy.includes(energy.source)) {
+      return res.status(400).json({ error: 'Invalid energy source' });
+    }
+    const monthlyKwh = Number(energy.monthlyKwh);
+    if (isNaN(monthlyKwh) || monthlyKwh < 0 || monthlyKwh > 50000) {
+      return res.status(400).json({ error: 'Monthly energy usage must be a positive number under 50,000 kWh' });
+    }
+    const shortHaul = Number(flights.shortHaul);
+    const longHaul = Number(flights.longHaul);
+    if (isNaN(shortHaul) || shortHaul < 0 || shortHaul > 365 || !Number.isInteger(shortHaul)) {
+      return res.status(400).json({ error: 'Short-haul flights must be a positive integer under 365' });
+    }
+    if (isNaN(longHaul) || longHaul < 0 || longHaul > 365 || !Number.isInteger(longHaul)) {
+      return res.status(400).json({ error: 'Long-haul flights must be a positive integer under 365' });
+    }
+
     const answers = {
       transport: {
         mode: transport.mode || 'car_petrol',
