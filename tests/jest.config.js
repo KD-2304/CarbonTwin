@@ -5,7 +5,12 @@ module.exports = {
   testEnvironment: 'node',
   verbose: true,
   testTimeout: 30000,
-  moduleDirectories: ['node_modules', '<rootDir>/server/node_modules'],
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.js']
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
+  moduleNameMapper: {
+    '^mongoose$': '<rootDir>/server/node_modules/mongoose',
+    '^dotenv$': '<rootDir>/server/node_modules/dotenv'
+  }
 };
+
+
 

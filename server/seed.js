@@ -10,6 +10,11 @@ const bcrypt = require('bcryptjs');
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/carbon-twin-city';
 
 async function seed() {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('❌ CAUTION: Database seeding blocked in production environment!');
+    process.exit(1);
+  }
+
   try {
     await mongoose.connect(MONGO_URI);
     console.log('Connected to MongoDB');
