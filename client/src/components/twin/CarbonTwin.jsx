@@ -558,8 +558,33 @@ function Environment({ score }) {
 
 // ─── MAIN COMPONENT ────────────────────────────────────────────
 export default function CarbonTwin({ score = 3000, animating = false, streak = 0 }) {
+  const controlsRef = useRef();
+
+  const handleKeyDown = (e) => {
+    if (!controlsRef.current) return;
+    const step = 0.1;
+    if (e.key === 'ArrowLeft') {
+      controlsRef.current.rotateLeft(step);
+      controlsRef.current.update();
+    } else if (e.key === 'ArrowRight') {
+      controlsRef.current.rotateRight(step);
+      controlsRef.current.update();
+    } else if (e.key === 'ArrowUp') {
+      controlsRef.current.rotateUp(step);
+      controlsRef.current.update();
+    } else if (e.key === 'ArrowDown') {
+      controlsRef.current.rotateDown(step);
+      controlsRef.current.update();
+    }
+  };
+
   return (
-    <div className="w-full h-full min-h-0 rounded-lg overflow-hidden relative">
+    <div
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      aria-label="3D Carbon Twin Avatar. Use arrow keys to rotate."
+      className="w-full h-full min-h-0 rounded-lg overflow-hidden relative focus:ring-2 focus:ring-sage-400 focus:outline-none"
+    >
       <Canvas camera={{ position: [0, 1.0, 5], fov: 46 }}>
         <Environment score={score} />
         <AvatarBody score={score} animating={animating} />
@@ -569,6 +594,7 @@ export default function CarbonTwin({ score = 3000, animating = false, streak = 0
         <HUDDisplay score={score} />
         <ParticleSystem score={score} />
         <OrbitControls
+          ref={controlsRef}
           enablePan={false}
           enableZoom={false}
           minPolarAngle={Math.PI / 4}

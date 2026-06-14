@@ -457,25 +457,50 @@ function CityScene({ communityScore = 3500 }) {
           </mesh>
         )}
       </group>
-
-      <OrbitControls
-        enablePan={false}
-        minDistance={5}
-        maxDistance={15}
-        minPolarAngle={0.4}
-        maxPolarAngle={Math.PI / 2.1}
-        autoRotate
-        autoRotateSpeed={0.3}
-      />
     </>
   );
 }
 
 export default function CarbonCity({ communityScore = 3500 }) {
+  const controlsRef = useRef();
+
+  const handleKeyDown = (e) => {
+    if (!controlsRef.current) return;
+    const step = 0.1;
+    if (e.key === 'ArrowLeft') {
+      controlsRef.current.rotateLeft(step);
+      controlsRef.current.update();
+    } else if (e.key === 'ArrowRight') {
+      controlsRef.current.rotateRight(step);
+      controlsRef.current.update();
+    } else if (e.key === 'ArrowUp') {
+      controlsRef.current.rotateUp(step);
+      controlsRef.current.update();
+    } else if (e.key === 'ArrowDown') {
+      controlsRef.current.rotateDown(step);
+      controlsRef.current.update();
+    }
+  };
+
   return (
-    <div className="w-full h-full min-h-[400px]">
+    <div
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      aria-label="3D Carbon City. Use arrow keys to rotate."
+      className="w-full h-full min-h-[400px] focus:ring-2 focus:ring-sage-400 focus:outline-none"
+    >
       <Canvas camera={{ position: [8, 5, 8], fov: 48 }} shadows>
         <CityScene communityScore={communityScore} />
+        <OrbitControls
+          ref={controlsRef}
+          enablePan={false}
+          minDistance={5}
+          maxDistance={15}
+          minPolarAngle={0.4}
+          maxPolarAngle={Math.PI / 2.1}
+          autoRotate
+          autoRotateSpeed={0.3}
+        />
       </Canvas>
     </div>
   );

@@ -6,67 +6,7 @@
  */
 
 // ─── EMISSION FACTORS ─────────────────────────────────────────
-const EMISSION_FACTORS = {
-  transport: {
-    // kg CO₂ per km — Source: UK DEFRA 2023 emission factors
-    car_petrol: 0.21,
-    car_diesel: 0.17,
-    car_electric: 0.05,  // Includes electricity generation emissions
-    bike: 0.0,
-    public_transit: 0.089, // Average bus/train per passenger-km
-    walk: 0.0
-  },
-  diet: {
-    // kg CO₂ per year — Source: Scarborough et al., 2014; Poore & Nemecek, 2018
-    vegan: 1500,
-    vegetarian: 1700,
-    pescatarian: 1900,
-    omnivore: 2500,
-    heavy_meat: 3300
-  },
-  energy: {
-    // kg CO₂ per kWh — Source: IPCC 2021, IEA
-    renewable: 0.05,   // Solar/wind lifecycle emissions
-    mixed: 0.23,       // Global average grid mix
-    coal: 0.82         // Coal-dominant grid
-  },
-  shopping: {
-    // kg CO₂ per year — Source: WRAP, Ellen MacArthur Foundation
-    minimal: 500,
-    average: 1200,
-    frequent: 2400
-  },
-  flights: {
-    // kg CO₂ per flight (round trip) — Source: ICAO Carbon Emissions Calculator
-    shortHaul: 255,    // < 3 hours
-    longHaul: 1620     // > 6 hours, includes radiative forcing multiplier
-  },
-  // Daily action deltas (kg CO₂)
-  actions: {
-    transport: {
-      took_car: null,  // Calculated based on km input
-      public_transit: -0.3,
-      cycled_walked: null, // Full car amount saved
-      work_from_home: -1.2
-    },
-    meal: {
-      vegan_meal: -0.5,
-      vegetarian_meal: -0.3,
-      meat_meal: 0.8,
-      local_produce: -0.2
-    },
-    home: {
-      ac_off_4hrs: -0.4,
-      air_dry_laundry: -0.7,
-      reduced_heating: -0.5
-    },
-    shopping: {
-      secondhand_item: -1.2,
-      avoid_plastic: -0.1,
-      new_electronics: 30
-    }
-  }
-};
+const { EMISSION_FACTORS } = require('../config/emissionFactors');
 
 // Global comparison benchmarks (kg CO₂/year)
 const BENCHMARKS = {

@@ -58,7 +58,7 @@ export default function AiCoach() {
   };
 
   return (
-    <div className="surface flex max-h-[620px] flex-col p-5">
+    <div className="surface flex max-h-[640px] flex-col p-5">
       <div className="mb-4 flex items-center gap-2">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-400/10 border border-violet-400/15">
           <Bot size={14} className="text-violet-400" />
