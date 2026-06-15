@@ -21,6 +21,24 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
+// ─── CORS CONFIGURATION ────────────────────────────────────────
+let clientOrigin = process.env.CLIENT_URL || (process.env.NODE_ENV === 'production' ? null : 'http://localhost:5173');
+if (clientOrigin && clientOrigin.endsWith('/')) {
+  clientOrigin = clientOrigin.slice(0, -1);
+}
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, tools, or same-origin)
+    if (!origin || origin === clientOrigin) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Not allowed by CORS. Incoming origin: "${origin}" does not match configured: "${clientOrigin}"`));
+    }
+  },
+  credentials: true
+}));
+
 // ─── SECURITY MIDDLEWARE ──────────────────────────────────────
 app.use(helmet());
 app.use(mongoSanitize());
@@ -34,21 +52,6 @@ const apiLimiter = rateLimit({
   legacyHeaders: false
 });
 app.use('/api', apiLimiter);
-
-// ─── MIDDLEWARE ────────────────────────────────────────────────
-const clientOrigin = process.env.CLIENT_URL || (process.env.NODE_ENV === 'production' ? null : 'http://localhost:5173');
-
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (same-origin, tools, or mobile apps)
-    if (!origin || origin === clientOrigin) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-}));
 
 app.use(express.json({ limit: '10kb' }));
 
