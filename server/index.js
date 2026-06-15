@@ -27,36 +27,18 @@ if (clientOrigin && clientOrigin.endsWith('/')) {
   clientOrigin = clientOrigin.slice(0, -1);
 }
 
-// app.use(cors({
-//   origin: (origin, callback) => {
-//     // Allow requests with no origin (like mobile apps, tools, or same-origin)
-//     if (!origin || origin === clientOrigin) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error(`Not allowed by CORS. Incoming origin: "${origin}" does not match configured: "${clientOrigin}"`));
-//     }
-//   },
-//   credentials: true
-// }));
-
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://carbon-foot-print-tracker-nine.vercel.app"
-];
-
 app.use(cors({
   origin: (origin, callback) => {
-    console.log("Incoming Origin:", origin);
-    console.log("Allowed Origin:", clientOrigin);
-
+    // Allow requests with no origin (like mobile apps, tools, or same-origin)
     if (!origin || origin === clientOrigin) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      callback(new Error(`Not allowed by CORS. Incoming origin: "${origin}" does not match configured: "${clientOrigin}"`));
     }
   },
   credentials: true
 }));
+
 
 // ─── SECURITY MIDDLEWARE ──────────────────────────────────────
 app.use(helmet());
