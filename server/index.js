@@ -16,6 +16,11 @@ if (missing.length > 0 && process.env.NODE_ENV !== 'test') {
 
 const app = express();
 
+// Trust reverse proxy (e.g. Nginx on EC2) in production for correct client IP tracking and cookie security
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // ─── SECURITY MIDDLEWARE ──────────────────────────────────────
 app.use(helmet());
 app.use(mongoSanitize());
