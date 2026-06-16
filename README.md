@@ -19,7 +19,7 @@
 ## 🚀 Key Features
 
 *   **📊 Personal Carbon Dashboard:** A real-time hub tracking your annual carbon footprint, consecutive log streaks, and weekly emission savings.
-*   **🎮 3D Twin City:** An interactive 3D virtual world rendered via Three.js (React Three Fiber) reflecting your community's collective ecological health.
+*   **🎮 3D Twin City:** An interactive 3D virtual world rendered via Three.js (React Three Fiber) where each skyscraper represents a real community member. Building heights map directly to each user's carbon footprint, with wind turbines, solar panels, and warning beacons dynamically reflecting their individual environmental impact. Hovering over any building displays a sleek, glassmorphic tooltip with live user metrics.
 *   **🤖 AI Coach:** Personalized, actionable tips generated dynamically by the Google Gemini API to target your highest emission areas.
 *   **📝 Daily Action Logger:** Quick-log eco-conscious daily routines (diet, travel, home energy, and shopping) and witness instant score feedback.
 *   **🧪 What-If Simulator:** A scenario testing laboratory projecting potential carbon savings before committing to lifestyle modifications.
@@ -158,6 +158,7 @@ All backend routes are prefixed with `/api`. Modifying endpoints require the `X-
 | `POST` | `/api/actions/log` | ✓ | Log a new eco-action (Diet, Travel, Home, Shopping) |
 | `POST` | `/api/quiz/submit` | ✓ | Submit onboarding survey to compute baseline |
 | `POST` | `/api/ai/coach` | ✓ | Chat dynamically with Gemini Carbon Coach |
+| `GET` | `/api/community/stats` | ✓ | Retrieve aggregate community stats and the user list for 3D city mapping |
 | `GET` | `/api/community/leaderboard`| ✓ | Retrieve top reducers and streak achievers |
 | `POST` | `/api/simulator/calculate` | ✓ | Run projections on modified lifestyle answers |
 
