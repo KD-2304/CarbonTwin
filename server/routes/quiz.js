@@ -5,70 +5,83 @@ const { calculateBaselineScore, EMISSION_FACTORS } = require('../services/scoreS
 
 const router = express.Router();
 
+const { z } = require('zod');
+
+const quizSchema = z.object({
+  diet: z.enum(['vegan', 'vegetarian', 'pescatarian', 'omnivore', 'heavy_meat'], {
+    errorMap: () => ({ message: 'Invalid diet type' })
+  }),
+  shopping: z.enum(['minimal', 'average', 'frequent'], {
+    errorMap: () => ({ message: 'Invalid shopping habit' })
+  }),
+  transport: z.object({
+    mode: z.enum(['car_petrol', 'car_diesel', 'car_electric', 'bike', 'public_transit', 'walk'], {
+      errorMap: () => ({ message: 'Invalid transport mode' })
+    }),
+    weeklyKm: z.coerce.number()
+      .min(0, 'Weekly distance must be a positive number under 10,000 km')
+      .max(10000, 'Weekly distance must be a positive number under 10,000 km')
+  }, { required_error: 'Transport details are required' }),
+  energy: z.object({
+    source: z.enum(['renewable', 'mixed', 'coal'], {
+      errorMap: () => ({ message: 'Invalid energy source' })
+    }),
+    monthlyKwh: z.coerce.number()
+      .min(0, 'Monthly energy usage must be a positive number under 50,000 kWh')
+      .max(50000, 'Monthly energy usage must be a positive number under 50,000 kWh')
+  }, { required_error: 'Energy details are required' }),
+  flights: z.object({
+    shortHaul: z.coerce.number()
+      .int('Short-haul flights must be a positive integer under 365')
+      .min(0, 'Short-haul flights must be a positive integer under 365')
+      .max(365, 'Short-haul flights must be a positive integer under 365'),
+    longHaul: z.coerce.number()
+      .int('Long-haul flights must be a positive integer under 365')
+      .min(0, 'Long-haul flights must be a positive integer under 365')
+      .max(365, 'Long-haul flights must be a positive integer under 365')
+  }, { required_error: 'Flights details are required' })
+});
+
+const validateQuizSubmit = (req, res, next) => {
+  const { transport, diet, energy, shopping, flights } = req.body;
+  if (!transport || !diet || !energy || !shopping || !flights) {
+    return res.status(400).json({ error: 'All quiz fields are required' });
+  }
+
+  const result = quizSchema.safeParse(req.body);
+  if (!result.success) {
+    const errorMsg = result.error.errors[0].message;
+    return res.status(400).json({ error: errorMsg });
+  }
+  
+  req.body = result.data;
+  next();
+};
+
 // GET /api/quiz/emission-factors
 router.get('/emission-factors', auth, (req, res) => {
   res.json(EMISSION_FACTORS);
 });
 
 // POST /api/quiz/submit
-router.post('/submit', auth, async (req, res) => {
+router.post('/submit', auth, validateQuizSubmit, async (req, res) => {
   try {
     const { transport, diet, energy, shopping, flights } = req.body;
 
-    // Validate required fields
-    if (!transport || !diet || !energy || !shopping || !flights) {
-      return res.status(400).json({ error: 'All quiz fields are required' });
-    }
-
-    // Input validation checks
-    const validDiet = ['vegan', 'vegetarian', 'pescatarian', 'omnivore', 'heavy_meat'];
-    const validTransport = ['car_petrol', 'car_diesel', 'car_electric', 'bike', 'public_transit', 'walk'];
-    const validEnergy = ['renewable', 'mixed', 'coal'];
-    const validShopping = ['minimal', 'average', 'frequent'];
-
-    if (!validDiet.includes(diet)) {
-      return res.status(400).json({ error: 'Invalid diet type' });
-    }
-    if (!validShopping.includes(shopping)) {
-      return res.status(400).json({ error: 'Invalid shopping habit' });
-    }
-    if (!transport.mode || !validTransport.includes(transport.mode)) {
-      return res.status(400).json({ error: 'Invalid transport mode' });
-    }
-    const weeklyKm = Number(transport.weeklyKm);
-    if (isNaN(weeklyKm) || weeklyKm < 0 || weeklyKm > 10000) {
-      return res.status(400).json({ error: 'Weekly distance must be a positive number under 10,000 km' });
-    }
-    if (!energy.source || !validEnergy.includes(energy.source)) {
-      return res.status(400).json({ error: 'Invalid energy source' });
-    }
-    const monthlyKwh = Number(energy.monthlyKwh);
-    if (isNaN(monthlyKwh) || monthlyKwh < 0 || monthlyKwh > 50000) {
-      return res.status(400).json({ error: 'Monthly energy usage must be a positive number under 50,000 kWh' });
-    }
-    const shortHaul = Number(flights.shortHaul);
-    const longHaul = Number(flights.longHaul);
-    if (isNaN(shortHaul) || shortHaul < 0 || shortHaul > 365 || !Number.isInteger(shortHaul)) {
-      return res.status(400).json({ error: 'Short-haul flights must be a positive integer under 365' });
-    }
-    if (isNaN(longHaul) || longHaul < 0 || longHaul > 365 || !Number.isInteger(longHaul)) {
-      return res.status(400).json({ error: 'Long-haul flights must be a positive integer under 365' });
-    }
-
     const answers = {
       transport: {
-        mode: transport.mode || 'car_petrol',
-        weeklyKm: Number(transport.weeklyKm) || 0
+        mode: transport.mode,
+        weeklyKm: transport.weeklyKm
       },
-      diet: diet,
+      diet,
       energy: {
-        source: energy.source || 'mixed',
-        monthlyKwh: Number(energy.monthlyKwh) || 0
+        source: energy.source,
+        monthlyKwh: energy.monthlyKwh
       },
-      shopping: shopping,
+      shopping,
       flights: {
-        shortHaul: Number(flights.shortHaul) || 0,
-        longHaul: Number(flights.longHaul) || 0
+        shortHaul: flights.shortHaul,
+        longHaul: flights.longHaul
       }
     };
 

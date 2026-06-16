@@ -59,8 +59,24 @@ app.use(express.json({ limit: '10kb' }));
 // Anti-CSRF validation middleware for mutating requests
 app.use((req, res, next) => {
   if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
-    if (req.headers['x-ctc-request'] !== 'true' && process.env.NODE_ENV !== 'test') {
-      return res.status(403).json({ error: 'CSRF Protection: Missing required request header' });
+    if (process.env.NODE_ENV === 'test') {
+      return next();
+    }
+
+    let csrfCookie = null;
+    if (req.headers.cookie) {
+      const cookies = req.headers.cookie.split(';').reduce((acc, c) => {
+        const [key, value] = c.split('=').map(item => item.trim());
+        if (key && value) acc[key] = decodeURIComponent(value);
+        return acc;
+      }, {});
+      csrfCookie = cookies.ctc_csrf_token;
+    }
+
+    const csrfHeader = req.headers['x-ctc-request'];
+
+    if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
+      return res.status(403).json({ error: 'CSRF Protection: Token mismatch or missing' });
     }
   }
   next();

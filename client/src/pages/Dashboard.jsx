@@ -17,18 +17,16 @@ export default function Dashboard() {
   const {
     scoreData,
     scoreAnimating,
-    fetchScore,
-    fetchHistory,
-    fetchSummary,
+    fetchDashboardData,
     summary,
   } = useScore();
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    Promise.all([fetchScore(), fetchHistory(30), fetchSummary()]).then(() =>
-      setLoaded(true),
+    fetchDashboardData().then(() =>
+      setLoaded(true)
     );
-  }, []);
+  }, [fetchDashboardData]);
 
   const score = user?.currentScore || scoreData?.currentScore || 0;
   const breakdown = user?.scoreBreakdown || scoreData?.scoreBreakdown || {};

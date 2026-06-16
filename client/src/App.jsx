@@ -1,7 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import { useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ScoreProvider } from './context/ScoreContext';
+import { registerNavigate } from './api/axios';
 import ProtectedRoute from './components/ui/ProtectedRoute';
 import Sidebar from './components/ui/Sidebar';
 import BottomNav from './components/ui/BottomNav';
@@ -23,7 +25,7 @@ function AppLayout({ children }) {
   // Don't show nav on auth/onboarding/landing pages
   const isLandingPage = location.pathname === '/';
   if (!user || !user.onboardingComplete || isLandingPage) {
-    return <>{children}</>;
+    return <main className="w-full min-h-screen bg-base-950 overflow-x-hidden relative">{children}</main>;
   }
 
   return (
@@ -41,6 +43,11 @@ function AppLayout({ children }) {
 
 function AppRoutes() {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    registerNavigate(navigate);
+  }, [navigate]);
 
   if (loading) {
     return (

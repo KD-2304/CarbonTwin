@@ -10,6 +10,8 @@ const categoryLabels = {
   shopping: { label: 'Shopping', icon: ShoppingBag }
 };
 
+const categoryKeys = ['transport', 'meal', 'home', 'shopping'];
+
 export default function ActionLogger() {
   const [activeCategory, setActiveCategory] = useState('transport');
   const [km, setKm] = useState(10);
@@ -42,6 +44,24 @@ export default function ActionLogger() {
     }
   };
 
+  const handleKeyDown = (e, index) => {
+    let nextIndex = index;
+    if (e.key === 'ArrowRight') {
+      nextIndex = (index + 1) % categoryKeys.length;
+    } else if (e.key === 'ArrowLeft') {
+      nextIndex = (index - 1 + categoryKeys.length) % categoryKeys.length;
+    } else {
+      return;
+    }
+    e.preventDefault();
+    const nextKey = categoryKeys[nextIndex];
+    setActiveCategory(nextKey);
+    setTimeout(() => {
+      const nextBtn = document.getElementById(`tab-${nextKey}`);
+      if (nextBtn) nextBtn.focus();
+    }, 10);
+  };
+
   return (
     <div className="surface p-5">
       <div className="mb-4">
@@ -49,35 +69,42 @@ export default function ActionLogger() {
         <p className="text-sm text-sand-500">Capture the choices that shift your score.</p>
       </div>
 
-      <AnimatePresence>
-        {success && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className={`mb-4 flex items-center gap-2 rounded-xl border p-3 text-sm ${
-              success.delta < 0
-                ? 'border-sage-400/20 bg-sage-400/8 text-sage-400'
-                : 'border-amber-400/20 bg-amber-400/8 text-amber-400'
-            }`}
-          >
-            <span>
-              {success.action}: <strong>{success.delta > 0 ? '+' : ''}{success.delta} kg CO2</strong>
-            </span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div role="status" aria-live="polite" className="aria-live-announcer">
+        <AnimatePresence>
+          {success && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className={`mb-4 flex items-center gap-2 rounded-xl border p-3 text-sm ${
+                success.delta < 0
+                  ? 'border-sage-400/20 bg-sage-400/8 text-sage-400'
+                  : 'border-amber-400/20 bg-amber-400/8 text-amber-400'
+              }`}
+            >
+              <span>
+                {success.action}: <strong>{success.delta > 0 ? '+' : ''}{success.delta} kg CO2</strong>
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       <div className="segmented mb-4 grid grid-cols-4" role="tablist" aria-label="Action categories">
-        {Object.entries(categoryLabels).map(([key, cat]) => {
+        {categoryKeys.map((key, index) => {
+          const cat = categoryLabels[key];
           const Icon = cat.icon;
           return (
             <button
               key={key}
+              id={`tab-${key}`}
               role="tab"
               aria-selected={activeCategory === key}
+              aria-controls={`panel-${key}`}
+              tabIndex={activeCategory === key ? 0 : -1}
+              onKeyDown={(e) => handleKeyDown(e, index)}
               onClick={() => setActiveCategory(key)}
-              className={`flex flex-col items-center gap-1 px-2 py-2.5 text-[10px] font-bold transition-all rounded-lg ${
+              className={`flex flex-col items-center gap-1 px-2 py-2.5 text-[10px] font-bold transition-all rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-400 ${
                 activeCategory === key
                   ? 'bg-sage-400/12 text-sage-400'
                   : 'text-sand-500 hover:text-sand-200'
@@ -90,7 +117,13 @@ export default function ActionLogger() {
         })}
       </div>
 
-      <div className="space-y-2">
+      <div
+        role="tabpanel"
+        id={`panel-${activeCategory}`}
+        aria-labelledby={`tab-${activeCategory}`}
+        className="space-y-2 focus:outline-none"
+        tabIndex={0}
+      >
         {actionOptions && actionOptions[activeCategory]?.map((action) => (
           <motion.button
             key={action.id}
@@ -118,8 +151,9 @@ export default function ActionLogger() {
 
       {activeCategory === 'transport' && (
         <div className="mt-3">
-          <label className="mb-1 block text-xs text-sand-500 font-medium">Distance (km)</label>
+          <label htmlFor="action-distance" className="mb-1 block text-xs text-sand-500 font-medium">Distance (km)</label>
           <input
+            id="action-distance"
             type="number"
             value={km}
             onChange={(e) => setKm(Number(e.target.value))}
@@ -131,7 +165,9 @@ export default function ActionLogger() {
       )}
 
       <div className="mt-3">
+        <label htmlFor="action-notes" className="sr-only">Add a note (optional)</label>
         <input
+          id="action-notes"
           type="text"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}

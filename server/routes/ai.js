@@ -56,8 +56,11 @@ router.post('/weekly-insight', auth, async (req, res) => {
 router.post('/chat', auth, async (req, res) => {
   try {
     const { message } = req.body;
-    if (!message) {
-      return res.status(400).json({ error: 'Message is required' });
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return res.status(400).json({ error: 'Message is required and must be a non-empty string' });
+    }
+    if (message.length > 2000) {
+      return res.status(400).json({ error: 'Message must be under 2000 characters' });
     }
 
     const userData = await getUserDataForAI(req.userId);

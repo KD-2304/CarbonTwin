@@ -267,8 +267,51 @@ function HighFiTree({ position }) {
 }
 
 // ─── EXTENDED SMOG VELOCITY SYSTEM ──────────────────────────────
+const SMOG_VERTEX_SHADER = `
+  uniform float uTime;
+  uniform float uSize;
+  attribute float aSpeed;
+  attribute float aSeed;
+  
+  void main() {
+    vec3 pos = position;
+    
+    // Vertical drift: height range is 4.5m (from 0.5m to 5.0m)
+    float yDiff = pos.y - 0.5;
+    pos.y = 0.5 + mod(yDiff + uTime * aSpeed, 4.5);
+    
+    // Horizontal wiggle based on time and individual seed
+    pos.x += sin(uTime * 0.5 + aSeed) * 0.15;
+    pos.z += cos(uTime * 0.4 + aSeed) * 0.15;
+    
+    vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+    gl_Position = projectionMatrix * mvPosition;
+    
+    // Distance attenuation for size
+    gl_PointSize = uSize * (300.0 / -mvPosition.z);
+  }
+`;
+
+const SMOG_FRAGMENT_SHADER = `
+  uniform vec3 uColor;
+  uniform float uOpacity;
+  
+  void main() {
+    // Circular shape for point particles
+    float dist = distance(gl_PointCoord, vec2(0.5));
+    if (dist > 0.5) {
+      discard;
+    }
+    
+    // Soft edge alpha transition
+    float alpha = smoothstep(0.5, 0.1, dist) * uOpacity;
+    gl_FragColor = vec4(uColor, alpha);
+  }
+`;
+
 function SmogParticles({ score }) {
-  const particlesRef = useRef();
+  const materialRef = useRef();
+  
   const density = useMemo(() => {
     if (score < 2000) return 0;
     if (score < 3000) return 30;
@@ -276,47 +319,54 @@ function SmogParticles({ score }) {
     return 180;
   }, [score]);
 
-  const [positions, scales] = useMemo(() => {
+  const [positions, speeds, seeds] = useMemo(() => {
     const pos = new Float32Array(density * 3);
-    const scl = new Float32Array(density);
+    const spd = new Float32Array(density);
+    const sd = new Float32Array(density);
     for (let i = 0; i < density; i++) {
       pos[i * 3] = (Math.random() - 0.5) * 16;
-      pos[i * 3 + 1] = Math.random() * 4 + 0.5;
+      pos[i * 3 + 1] = Math.random() * 4.5 + 0.5; // Range [0.5, 5.0]
       pos[i * 3 + 2] = (Math.random() - 0.5) * 16;
-      scl[i] = 0.1 + Math.random() * 0.25;
+      spd[i] = 0.05 + Math.random() * 0.1; // Speed multiplier
+      sd[i] = Math.random() * 100.0;       // Random seed for wiggle offset
     }
-    return [pos, scl];
+    return [pos, spd, sd];
   }, [density]);
+
+  const color = useMemo(() => new THREE.Color(score > 4000 ? '#451a03' : '#64748b'), [score]);
+  const opacity = score > 4000 ? 0.45 : 0.25;
+
+  const uniforms = useMemo(() => ({
+    uTime: { value: 0 },
+    uColor: { value: color },
+    uOpacity: { value: opacity },
+    uSize: { value: 0.28 }
+  }), [color, opacity]);
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
-    if (!particlesRef.current || density === 0) return;
-    const arr = particlesRef.current.geometry.attributes.position.array;
-    for (let i = 0; i < density; i++) {
-      arr[i * 3 + 1] += 0.004; // Drifting pace upward
-      arr[i * 3] += Math.sin(t * 0.5 + i) * 0.002;
-      if (arr[i * 3 + 1] > 5) {
-        arr[i * 3 + 1] = 0.5;
-        arr[i * 3] = (Math.random() - 0.5) * 16;
-        arr[i * 3 + 2] = (Math.random() - 0.5) * 16;
-      }
+    if (materialRef.current) {
+      materialRef.current.uniforms.uTime.value = t;
     }
-    particlesRef.current.geometry.attributes.position.needsUpdate = true;
   });
 
   if (density === 0) return null;
 
   return (
-    <points ref={particlesRef}>
+    <points>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={density} array={positions} itemSize={3} />
+        <bufferAttribute attach="attributes-aSpeed" count={density} array={speeds} itemSize={1} />
+        <bufferAttribute attach="attributes-aSeed" count={density} array={seeds} itemSize={1} />
       </bufferGeometry>
-      <pointsMaterial 
-        color={score > 4000 ? '#451a03' : '#64748b'} 
-        size={0.28} 
-        transparent 
-        opacity={score > 4000 ? 0.45 : 0.25} 
+      <shaderMaterial
+        ref={materialRef}
+        vertexShader={SMOG_VERTEX_SHADER}
+        fragmentShader={SMOG_FRAGMENT_SHADER}
+        transparent
+        depthWrite={false}
         blending={THREE.NormalBlending}
+        uniforms={uniforms}
       />
     </points>
   );

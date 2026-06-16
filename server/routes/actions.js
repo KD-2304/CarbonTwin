@@ -6,37 +6,59 @@ const { calculateActionDelta, updateStreak } = require('../services/scoreService
 
 const router = express.Router();
 
+const { z } = require('zod');
+
+const validActions = {
+  transport: ['took_car', 'public_transit', 'cycled_walked', 'work_from_home'],
+  meal: ['vegan_meal', 'vegetarian_meal', 'meat_meal', 'local_produce'],
+  home: ['ac_off_4hrs', 'air_dry_laundry', 'reduced_heating'],
+  shopping: ['secondhand_item', 'avoid_plastic', 'new_electronics']
+};
+
+const actionLogSchema = z.object({
+  category: z.enum(['transport', 'meal', 'home', 'shopping'], {
+    errorMap: () => ({ message: 'Invalid action category' })
+  }),
+  action: z.string({ required_error: 'Action is required' }),
+  notes: z.string().max(500, 'Notes must be under 500 characters').optional().or(z.literal('')),
+  km: z.coerce.number().optional()
+}).refine(data => {
+  const allowed = validActions[data.category];
+  return allowed && allowed.includes(data.action);
+}, {
+  message: 'Invalid action for category',
+  path: ['action']
+}).refine(data => {
+  if (data.category === 'transport' && (data.action === 'took_car' || data.action === 'cycled_walked')) {
+    const km = data.km;
+    return km !== undefined && !isNaN(km) && km >= 0 && km <= 1000;
+  }
+  return true;
+}, {
+  message: 'Distance must be a positive number under 1,000 km',
+  path: ['km']
+});
+
+const validateActionLog = (req, res, next) => {
+  const { category, action } = req.body;
+  if (!category || !action) {
+    return res.status(400).json({ error: 'Category and action are required' });
+  }
+
+  const result = actionLogSchema.safeParse(req.body);
+  if (!result.success) {
+    const errorMsg = result.error.errors[0].message;
+    return res.status(400).json({ error: errorMsg });
+  }
+
+  req.body = result.data;
+  next();
+};
+
 // POST /api/actions/log
-router.post('/log', auth, async (req, res) => {
+router.post('/log', auth, validateActionLog, async (req, res) => {
   try {
     const { category, action, notes, km } = req.body;
-
-    if (!category || !action) {
-      return res.status(400).json({ error: 'Category and action are required' });
-    }
-
-    // Input validation checks
-    const validActions = {
-      transport: ['took_car', 'public_transit', 'cycled_walked', 'work_from_home'],
-      meal: ['vegan_meal', 'vegetarian_meal', 'meat_meal', 'local_produce'],
-      home: ['ac_off_4hrs', 'air_dry_laundry', 'reduced_heating'],
-      shopping: ['secondhand_item', 'avoid_plastic', 'new_electronics']
-    };
-
-    if (!validActions[category]) {
-      return res.status(400).json({ error: 'Invalid action category' });
-    }
-
-    if (!validActions[category].includes(action)) {
-      return res.status(400).json({ error: 'Invalid action for category' });
-    }
-
-    if (category === 'transport' && (action === 'took_car' || action === 'cycled_walked')) {
-      const parsedKm = Number(km);
-      if (isNaN(parsedKm) || parsedKm < 0 || parsedKm > 1000) {
-        return res.status(400).json({ error: 'Distance must be a positive number under 1,000 km' });
-      }
-    }
 
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -93,7 +115,10 @@ router.post('/log', auth, async (req, res) => {
 // GET /api/actions/history?days=7
 router.get('/history', auth, async (req, res) => {
   try {
-    const days = parseInt(req.query.days) || 7;
+    let days = parseInt(req.query.days);
+    if (isNaN(days) || days <= 0 || days > 365) {
+      days = 7;
+    }
     const since = new Date();
     since.setDate(since.getDate() - days);
 

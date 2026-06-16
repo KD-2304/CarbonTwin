@@ -1,10 +1,11 @@
 const express = require('express');
+const auth = require('../middleware/auth');
 const { EMISSION_FACTORS, getEquivalencies } = require('../services/scoreService');
 
 const router = express.Router();
 
 // POST /api/simulator/calculate
-router.post('/calculate', (req, res) => {
+router.post('/calculate', auth, (req, res) => {
   try {
     const { currentAnswers, modifications } = req.body;
 

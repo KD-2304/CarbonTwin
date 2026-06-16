@@ -157,10 +157,12 @@ export default function AiCoach() {
 
       <form onSubmit={sendMessage} className="flex gap-2">
         <input
+          id="ai-coach-message-input"
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask your coach..."
+          aria-label="Ask your carbon coach"
           className="input-field flex-1 py-2.5 text-sm"
           disabled={loading}
         />

@@ -45,35 +45,32 @@ export function ScoreProvider({ children }) {
     return staticOptions;
   }, [emissionFactors]);
 
-  const fetchScore = useCallback(async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
-      const { data } = await userAPI.getScore();
-      setScoreData(data);
+      const { data } = await userAPI.getDashboardSummary();
+      setScoreData(data.profile);
+      setActionHistory(data.history);
+      setSummary(data.summary);
       return data;
     } catch (error) {
-      console.error('Failed to fetch score:', error);
+      console.error('Failed to fetch dashboard data:', error);
     }
   }, []);
+
+  const fetchScore = useCallback(async () => {
+    const data = await fetchDashboardData();
+    return data?.profile;
+  }, [fetchDashboardData]);
 
   const fetchHistory = useCallback(async (days = 7) => {
-    try {
-      const { data } = await actionsAPI.getHistory(days);
-      setActionHistory(data);
-      return data;
-    } catch (error) {
-      console.error('Failed to fetch history:', error);
-    }
-  }, []);
+    const data = await fetchDashboardData();
+    return data?.history;
+  }, [fetchDashboardData]);
 
   const fetchSummary = useCallback(async () => {
-    try {
-      const { data } = await actionsAPI.getSummary();
-      setSummary(data);
-      return data;
-    } catch (error) {
-      console.error('Failed to fetch summary:', error);
-    }
-  }, []);
+    const data = await fetchDashboardData();
+    return data?.summary;
+  }, [fetchDashboardData]);
 
   const logAction = useCallback(async (actionData) => {
     try {
@@ -82,14 +79,14 @@ export function ScoreProvider({ children }) {
       setScoreAnimating(true);
       setTimeout(() => setScoreAnimating(false), 1500);
 
-      // Refresh score and history
-      await Promise.all([fetchScore(), fetchHistory(), fetchSummary(), refreshUser()]);
+      // Refresh everything in a single API call!
+      await Promise.all([fetchDashboardData(), refreshUser()]);
       return data;
     } catch (error) {
       console.error('Failed to log action:', error);
       throw error;
     }
-  }, [fetchScore, fetchHistory, fetchSummary, refreshUser]);
+  }, [fetchDashboardData, refreshUser]);
 
   return (
     <ScoreContext.Provider value={{
@@ -102,6 +99,7 @@ export function ScoreProvider({ children }) {
       fetchScore,
       fetchHistory,
       fetchSummary,
+      fetchDashboardData,
       logAction,
     }}>
       {children}

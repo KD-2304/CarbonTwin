@@ -7,9 +7,27 @@ const API = axios.create({
 });
 
 
+// Read a cookie by name
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
+
+let navigateFn = null;
+export const registerNavigate = (nav) => {
+  navigateFn = nav;
+};
+
 // Attach custom security header to every request for CSRF protection
 API.interceptors.request.use(config => {
-  config.headers['X-CTC-Request'] = 'true';
+  const csrfToken = getCookie('ctc_csrf_token');
+  if (csrfToken) {
+    config.headers['X-CTC-Request'] = csrfToken;
+  } else {
+    config.headers['X-CTC-Request'] = 'true'; // Fallback
+  }
   return config;
 });
 
@@ -20,7 +38,11 @@ API.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('ctc_user');
       if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+        if (navigateFn) {
+          navigateFn('/login');
+        } else {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);
@@ -40,6 +62,7 @@ export const userAPI = {
   getProfile: () => API.get('/user/profile'),
   updateProfile: (data) => API.put('/user/profile', data),
   getScore: () => API.get('/user/score'),
+  getDashboardSummary: () => API.get('/user/dashboard-summary'),
 };
 
 // ─── QUIZ ─────────────────────────────────────────────────────

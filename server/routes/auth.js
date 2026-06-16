@@ -1,48 +1,48 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const { z } = require('zod');
 const User = require('../models/User');
 
 const router = express.Router();
 
-// Input Validation Middleware
+// Input Validation Schemas
+const registerSchema = z.object({
+  name: z.string({ required_error: 'Name is required' })
+    .trim()
+    .min(2, 'Name is required and must be between 2 and 50 characters')
+    .max(50, 'Name is required and must be between 2 and 50 characters'),
+  email: z.string({ required_error: 'Email is required' })
+    .trim()
+    .email('Email is required and must be a valid email address'),
+  password: z.string({ required_error: 'Password is required' })
+    .min(6, 'Password is required and must be at least 6 characters'),
+  city: z.string().max(100, 'City name is too long').optional().or(z.literal('')),
+  country: z.string().max(100, 'Country name is too long').optional().or(z.literal(''))
+});
+
+const loginSchema = z.object({
+  email: z.string({ required_error: 'Email is required' }).trim(),
+  password: z.string({ required_error: 'Password is required' })
+});
+
 const validateRegisterInput = (req, res, next) => {
-  const { name, email, password, city, country } = req.body;
-
-  if (!name || typeof name !== 'string' || name.trim().length < 2 || name.length > 50) {
-    return res.status(400).json({ error: 'Name is required and must be between 2 and 50 characters' });
+  const result = registerSchema.safeParse(req.body);
+  if (!result.success) {
+    const errorMsg = result.error.errors[0].message;
+    return res.status(400).json({ error: errorMsg });
   }
-
-  const emailRegex = /^\S+@\S+\.\S+$/;
-  if (!email || typeof email !== 'string' || !emailRegex.test(email.trim())) {
-    return res.status(400).json({ error: 'Email is required and must be a valid email address' });
-  }
-
-  if (!password || typeof password !== 'string' || password.length < 6) {
-    return res.status(400).json({ error: 'Password is required and must be at least 6 characters' });
-  }
-
-  if (city && (typeof city !== 'string' || city.length > 100)) {
-    return res.status(400).json({ error: 'City name is too long' });
-  }
-
-  if (country && (typeof country !== 'string' || country.length > 100)) {
-    return res.status(400).json({ error: 'Country name is too long' });
-  }
-
+  req.body = result.data;
   next();
 };
 
 const validateLoginInput = (req, res, next) => {
-  const { email, password } = req.body;
-
-  if (!email || typeof email !== 'string') {
-    return res.status(400).json({ error: 'Email is required' });
+  const result = loginSchema.safeParse(req.body);
+  if (!result.success) {
+    const errorMsg = result.error.errors[0].message;
+    return res.status(400).json({ error: errorMsg });
   }
-
-  if (!password || typeof password !== 'string') {
-    return res.status(400).json({ error: 'Password is required' });
-  }
-
+  req.body = result.data;
   next();
 };
 
@@ -71,9 +71,19 @@ router.post('/register', validateRegisterInput, async (req, res) => {
       { expiresIn: '30d' }
     );
 
+    const csrfToken = crypto.randomBytes(24).toString('hex');
+
     // Set HttpOnly cookie
     res.cookie('ctc_token', token, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    });
+
+    // Set non-HttpOnly CSRF cookie for client-side access
+    res.cookie('ctc_csrf_token', csrfToken, {
+      httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
       maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
@@ -116,9 +126,19 @@ router.post('/login', validateLoginInput, async (req, res) => {
       { expiresIn: '30d' }
     );
 
+    const csrfToken = crypto.randomBytes(24).toString('hex');
+
     // Set HttpOnly cookie
     res.cookie('ctc_token', token, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    });
+
+    // Set non-HttpOnly CSRF cookie for client-side access
+    res.cookie('ctc_csrf_token', csrfToken, {
+      httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
       maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
@@ -149,7 +169,13 @@ router.post('/logout', (req, res) => {
     secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
   });
+  res.clearCookie('ctc_csrf_token', {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
+  });
   res.json({ message: 'Logged out successfully' });
 });
 
 module.exports = router;
+
