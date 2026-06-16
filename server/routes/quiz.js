@@ -50,10 +50,10 @@ const validateQuizSubmit = (req, res, next) => {
 
   const result = quizSchema.safeParse(req.body);
   if (!result.success) {
-    const errorMsg = result.error.errors[0].message;
+    const errorMsg = result.error.issues[0].message;
     return res.status(400).json({ error: errorMsg });
   }
-  
+
   req.body = result.data;
   next();
 };

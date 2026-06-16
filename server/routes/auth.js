@@ -29,7 +29,7 @@ const loginSchema = z.object({
 const validateRegisterInput = (req, res, next) => {
   const result = registerSchema.safeParse(req.body);
   if (!result.success) {
-    const errorMsg = result.error.errors[0].message;
+    const errorMsg = result.error.issues[0].message;
     return res.status(400).json({ error: errorMsg });
   }
   req.body = result.data;
@@ -39,7 +39,7 @@ const validateRegisterInput = (req, res, next) => {
 const validateLoginInput = (req, res, next) => {
   const result = loginSchema.safeParse(req.body);
   if (!result.success) {
-    const errorMsg = result.error.errors[0].message;
+    const errorMsg = result.error.issues[0].message;
     return res.status(400).json({ error: errorMsg });
   }
   req.body = result.data;
