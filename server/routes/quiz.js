@@ -9,14 +9,14 @@ const { z } = require('zod');
 
 const quizSchema = z.object({
   diet: z.enum(['vegan', 'vegetarian', 'pescatarian', 'omnivore', 'heavy_meat'], {
-    errorMap: () => ({ message: 'Invalid diet type' })
+    message: 'Invalid diet type'
   }),
   shopping: z.enum(['minimal', 'average', 'frequent'], {
-    errorMap: () => ({ message: 'Invalid shopping habit' })
+    message: 'Invalid shopping habit'
   }),
   transport: z.object({
     mode: z.enum(['car_petrol', 'car_diesel', 'car_electric', 'bike', 'public_transit', 'walk'], {
-      errorMap: () => ({ message: 'Invalid transport mode' })
+      message: 'Invalid transport mode'
     }),
     weeklyKm: z.coerce.number()
       .min(0, 'Weekly distance must be a positive number under 10,000 km')
@@ -24,7 +24,7 @@ const quizSchema = z.object({
   }, { required_error: 'Transport details are required' }),
   energy: z.object({
     source: z.enum(['renewable', 'mixed', 'coal'], {
-      errorMap: () => ({ message: 'Invalid energy source' })
+      message: 'Invalid energy source'
     }),
     monthlyKwh: z.coerce.number()
       .min(0, 'Monthly energy usage must be a positive number under 50,000 kWh')

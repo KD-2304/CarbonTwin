@@ -17,7 +17,7 @@ const validActions = {
 
 const actionLogSchema = z.object({
   category: z.enum(['transport', 'meal', 'home', 'shopping'], {
-    errorMap: () => ({ message: 'Invalid action category' })
+    message: 'Invalid action category'
   }),
   action: z.string({ required_error: 'Action is required' }),
   notes: z.string().max(500, 'Notes must be under 500 characters').optional().or(z.literal('')),

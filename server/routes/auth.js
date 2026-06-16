@@ -27,6 +27,11 @@ const loginSchema = z.object({
 });
 
 const validateRegisterInput = (req, res, next) => {
+  const { name, email, password } = req.body;
+  if (!name || !email || !password) {
+    return res.status(400).json({ error: 'Name, email, and password are required' });
+  }
+
   const result = registerSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = result.error.issues[0].message;
@@ -37,6 +42,11 @@ const validateRegisterInput = (req, res, next) => {
 };
 
 const validateLoginInput = (req, res, next) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
+
   const result = loginSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = result.error.issues[0].message;
