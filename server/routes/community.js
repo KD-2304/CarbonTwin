@@ -58,12 +58,21 @@ router.get('/stats', auth, async (req, res) => {
     // 100 = community avg at Paris target (2000kg), 0 = at 8000kg+
     const cityHealth = Math.max(0, Math.min(100, Math.round(100 - ((communityAverage - 2000) / 60))));
 
+    const users = await User.find({ onboardingComplete: true })
+      .select('name currentScore')
+      .lean();
+
     const responsePayload = {
       totalUsers,
       communityAverage,
       totalCO2Saved: Math.max(0, totalCO2Saved),
       weeklyCO2Saved: Math.abs(weeklyCO2Saved),
-      cityHealth
+      cityHealth,
+      users: users.map(u => ({
+        id: u._id,
+        name: u.name,
+        currentScore: u.currentScore
+      }))
     };
 
     cache.stats = responsePayload;

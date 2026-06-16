@@ -87,7 +87,7 @@ export default function City() {
             <div className="sr-only" aria-live="polite">
               Interactive 3D simulation of Carbon City. The city is currently in a "{cityStates.find(s => isActiveState(s.label))?.label || 'Moderate'}" state. Current average community emission is {communityScore} kg CO₂ per year, and city health is {cityHealth} out of 100.
             </div>
-            <CarbonCity communityScore={communityScore} />
+            <CarbonCity communityScore={communityScore} users={stats?.users || []} />
             <div className="absolute inset-x-4 bottom-4 surface-soft p-4 rounded-xl backdrop-blur-lg">
               <div className="mb-2 flex items-center justify-between">
                 <span className="text-sm font-semibold text-sand-100">City Health</span>
