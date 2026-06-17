@@ -63,6 +63,11 @@ app.use((req, res, next) => {
       return next();
     }
 
+    // Exclude login and register routes from CSRF checks
+    if (['/api/auth/login', '/api/auth/register'].includes(req.path)) {
+      return next();
+    }
+
     let csrfCookie = null;
     if (req.headers.cookie) {
       const cookies = req.headers.cookie.split(';').reduce((acc, c) => {

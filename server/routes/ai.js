@@ -43,8 +43,36 @@ async function getUserDataForAI(userId) {
 // POST /api/ai/weekly-insight
 router.post('/weekly-insight', auth, async (req, res) => {
   try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Get the start of the current week (Monday)
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
+    weekStart.setHours(0, 0, 0, 0);
+
+    // If cache exists and was generated this week, return it
+    if (user.weeklyInsight && user.weeklyInsight.generatedAt && user.weeklyInsight.generatedAt >= weekStart) {
+      return res.json({
+        insight: user.weeklyInsight.insight,
+        actions: user.weeklyInsight.actions,
+        encouragement: user.weeklyInsight.encouragement
+      });
+    }
+
     const userData = await getUserDataForAI(req.userId);
     const insight = await generateWeeklyInsight(userData);
+
+    // Cache the generated insight on the user document
+    user.weeklyInsight = {
+      insight: insight.insight,
+      actions: insight.actions || [],
+      encouragement: insight.encouragement,
+      generatedAt: new Date()
+    };
+    await user.save();
+
     res.json(insight);
   } catch (error) {
     console.error('Weekly insight error:', error);

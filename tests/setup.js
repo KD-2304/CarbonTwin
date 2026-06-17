@@ -29,10 +29,17 @@ beforeAll(async () => {
 
   try {
     // Attempt in-memory MongoDB with a 10s timeout to prevent test hanging
+    let timeoutId;
+    const timeoutPromise = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error('MongoMemoryServer download/startup timeout')), 10000);
+    });
+
     mongoServer = await Promise.race([
       MongoMemoryServer.create(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('MongoMemoryServer download/startup timeout')), 10000))
+      timeoutPromise
     ]);
+    clearTimeout(timeoutId);
+    
     const uri = mongoServer.getUri();
 
     if (mongoose.connection.readyState !== 0) {

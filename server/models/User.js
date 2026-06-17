@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, 'Password is required'],
-    minlength: 6,
+    minlength: 8,
     select: false
   },
   city: {
@@ -87,6 +87,15 @@ const userSchema = new mongoose.Schema({
     energy: { type: Number, default: 0 },
     shopping: { type: Number, default: 0 },
     flights: { type: Number, default: 0 }
+  },
+  weeklyInsight: {
+    insight: { type: String, default: null },
+    actions: [{
+      action: { type: String },
+      saving: { type: String }
+    }],
+    encouragement: { type: String, default: null },
+    generatedAt: { type: Date, default: null }
   },
   dailySnapshots: [{
     date: { type: Date },

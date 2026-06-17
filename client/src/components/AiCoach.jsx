@@ -170,6 +170,7 @@ export default function AiCoach() {
           type="submit"
           disabled={loading || !input.trim()}
           className="btn-primary px-3.5 py-2.5 disabled:opacity-30"
+          aria-label="Send message to carbon coach"
         >
           <Send size={14} />
         </button>
