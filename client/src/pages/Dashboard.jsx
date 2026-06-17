@@ -168,7 +168,7 @@ export default function Dashboard() {
                 <Zap size={10} /> 3D Live
               </span>
             </div>
-            <div className="h-[380px] md:h-[460px]">
+            <div className="h-[380px] md:h-[460px]" role="img" aria-label={`3D Carbon Twin avatar visualizing your annual footprint of ${score} kg CO₂. ${score < 4000 ? 'Below world average — avatar appears green and healthy.' : 'Above world average — avatar shows elevated emissions.'}`}>
               <CarbonTwin score={score} animating={scoreAnimating} streak={streak} />
             </div>
           </motion.section>

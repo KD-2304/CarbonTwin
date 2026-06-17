@@ -95,6 +95,12 @@ const userSchema = new mongoose.Schema({
   lastWeeklyReset: {
     type: Date,
     default: Date.now
+  },
+  targetGoal: {
+    type: Number,
+    default: null,
+    min: [0, 'Target goal must be a positive number'],
+    max: [50000, 'Target goal must be under 50,000 kg']
   }
 }, {
   timestamps: true

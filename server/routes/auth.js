@@ -1,10 +1,21 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const rateLimit = require('express-rate-limit');
 const { z } = require('zod');
 const User = require('../models/User');
 
 const router = express.Router();
+
+// Strict rate limiter for login to prevent brute-force attacks
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 attempts per window
+  message: { error: 'Too many login attempts, please try again after 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true // Only count failed attempts
+});
 
 // Input Validation Schemas
 const registerSchema = z.object({
@@ -16,7 +27,7 @@ const registerSchema = z.object({
     .trim()
     .email('Email is required and must be a valid email address'),
   password: z.string({ required_error: 'Password is required' })
-    .min(6, 'Password is required and must be at least 6 characters'),
+    .min(8, 'Password is required and must be at least 8 characters'),
   city: z.string().max(100, 'City name is too long').optional().or(z.literal('')),
   country: z.string().max(100, 'Country name is too long').optional().or(z.literal(''))
 });
@@ -116,7 +127,7 @@ router.post('/register', validateRegisterInput, async (req, res) => {
 });
 
 // POST /api/auth/login
-router.post('/login', validateLoginInput, async (req, res) => {
+router.post('/login', loginLimiter, validateLoginInput, async (req, res) => {
   try {
     const { email, password } = req.body;
 

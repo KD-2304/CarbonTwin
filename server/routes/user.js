@@ -2,19 +2,9 @@ const express = require('express');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
 const { getStreakStatus } = require('../services/scoreService');
+const { checkAndResetWeeklyScore } = require('../utils/dateHelpers');
 
 const router = express.Router();
-
-// Helper to get start of the week (Monday 00:00:00)
-function getStartOfWeek(date) {
-  const d = new Date(date);
-  const day = d.getDay();
-  // Get days to subtract to reach Monday (1). Sunday (0) -> subtract 6 days.
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(d.setDate(diff));
-  monday.setHours(0, 0, 0, 0);
-  return monday;
-}
 
 // GET /api/user/profile
 router.get('/profile', auth, async (req, res) => {
@@ -23,16 +13,7 @@ router.get('/profile', auth, async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     // Lazy Reset Check: Ensure weeklyScore is reset if transitioning to a new calendar week
-    const now = new Date();
-    const lastReset = user.lastWeeklyReset || user.createdAt || now;
-    const startOfCurrentWeek = getStartOfWeek(now);
-    const startOfLastResetWeek = getStartOfWeek(lastReset);
-
-    if (startOfCurrentWeek.getTime() > startOfLastResetWeek.getTime()) {
-      user.weeklyScore = 0;
-      user.lastWeeklyReset = now;
-      await user.save();
-    }
+    await checkAndResetWeeklyScore(user);
 
     const streakStatus = getStreakStatus(user.lastLogDate, user.streak);
 
@@ -51,6 +32,7 @@ router.get('/profile', auth, async (req, res) => {
       quizAnswers: user.quizAnswers,
       scoreBreakdown: user.scoreBreakdown,
       dailySnapshots: user.dailySnapshots,
+      targetGoal: user.targetGoal,
       streakStatus,
       createdAt: user.createdAt
     });
@@ -131,16 +113,7 @@ router.get('/dashboard-summary', auth, async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     // Lazy Reset Check
-    const now = new Date();
-    const lastReset = user.lastWeeklyReset || user.createdAt || now;
-    const startOfCurrentWeek = getStartOfWeek(now);
-    const startOfLastResetWeek = getStartOfWeek(lastReset);
-
-    if (startOfCurrentWeek.getTime() > startOfLastResetWeek.getTime()) {
-      user.weeklyScore = 0;
-      user.lastWeeklyReset = now;
-      await user.save();
-    }
+    await checkAndResetWeeklyScore(user);
 
     const streakStatus = getStreakStatus(user.lastLogDate, user.streak);
 
@@ -159,6 +132,7 @@ router.get('/dashboard-summary', auth, async (req, res) => {
       quizAnswers: user.quizAnswers,
       scoreBreakdown: user.scoreBreakdown,
       dailySnapshots: user.dailySnapshots,
+      targetGoal: user.targetGoal,
       streakStatus,
       createdAt: user.createdAt
     };
@@ -200,6 +174,38 @@ router.get('/dashboard-summary', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Get dashboard summary error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// PUT /api/user/goal
+router.put('/goal', auth, async (req, res) => {
+  try {
+    const { targetGoal } = req.body;
+
+    if (targetGoal === undefined || targetGoal === null) {
+      return res.status(400).json({ error: 'Target goal is required' });
+    }
+
+    const goal = Number(targetGoal);
+    if (isNaN(goal) || goal < 0 || goal > 50000) {
+      return res.status(400).json({ error: 'Target goal must be a number between 0 and 50,000 kg' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { targetGoal: Math.round(goal) },
+      { new: true }
+    );
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    res.json({
+      targetGoal: user.targetGoal,
+      currentScore: user.currentScore,
+      baselineScore: user.baselineScore
+    });
+  } catch (error) {
+    console.error('Update goal error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

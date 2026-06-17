@@ -14,8 +14,8 @@
   --color-sand-200: #ece4d5;
   --color-sand-300: #cfc5b4;
   --color-sand-400: #c2b8a7;
-  --color-sand-500: #a59b8b;
-  --color-sand-600: #8f8576;
+  --color-sand-500: #b8b0a2;
+  --color-sand-600: #a5998b;
 
   /* ── Accent palette ── */
   --color-sage-400: #7cb77f;
@@ -92,6 +92,43 @@ button:disabled {
 
 #root {
   min-height: 100vh;
+}
+
+/* ════════════════════════════════════════════════════════
+   SKIP NAVIGATION
+   ════════════════════════════════════════════════════════ */
+
+.skip-nav {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 10000;
+  padding: 0.75rem 1.25rem;
+  background: var(--color-sage-400, #7cb77f);
+  color: #0c0e12;
+  font-weight: 700;
+  font-size: 0.875rem;
+  border-radius: 0 0 12px 0;
+  text-decoration: none;
+}
+
+.skip-nav:focus {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: auto;
+  height: auto;
+  outline: 3px solid #7cb77f;
+  outline-offset: 2px;
+}
+
+/* Screen-reader-only live announcer region */
+.aria-live-announcer {
+  /* keep visually present but compact so aria-live works reliably */
+  min-height: 0;
 }
 
 /* ════════════════════════════════════════════════════════
@@ -528,4 +565,20 @@ input[type="range"]::-moz-range-thumb {
   background: linear-gradient(135deg, #7cb77f, #4db8a4);
   border: 2px solid #0c0e12;
   cursor: pointer;
+}
+
+/* ════════════════════════════════════════════════════════
+   REDUCED MOTION
+   Users who prefer reduced motion get minimal animations.
+   ════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

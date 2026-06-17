@@ -79,14 +79,21 @@ export function ScoreProvider({ children }) {
       setScoreAnimating(true);
       setTimeout(() => setScoreAnimating(false), 1500);
 
-      // Refresh everything in a single API call!
-      await Promise.all([fetchDashboardData(), refreshUser()]);
+      // Use enriched response to update state directly — no extra API calls needed
+      if (data.updatedProfile) {
+        setScoreData(data.updatedProfile);
+      }
+      if (data.summary) {
+        setSummary(data.summary);
+      }
+      // Sync AuthContext user state
+      await refreshUser();
       return data;
     } catch (error) {
       console.error('Failed to log action:', error);
       throw error;
     }
-  }, [fetchDashboardData, refreshUser]);
+  }, [refreshUser]);
 
   return (
     <ScoreContext.Provider value={{

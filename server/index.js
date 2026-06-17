@@ -103,11 +103,9 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-// Error handler
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ error: 'Internal server error' });
-});
+// Centralized error handler (must be registered after all routes)
+const errorHandler = require('./middleware/errorHandler');
+app.use(errorHandler);
 
 // ─── DATABASE + SERVER START ──────────────────────────────────
 const PORT = process.env.PORT || 5000;

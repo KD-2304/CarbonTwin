@@ -90,6 +90,26 @@ router.post('/log', auth, validateActionLog, async (req, res) => {
     user.addDailySnapshot(user.currentScore);
     await user.save();
 
+    // Build inline weekly summary so client doesn't need a second round-trip
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const weeklyActions = await Action.find({
+      userId: req.userId,
+      timestamp: { $gte: weekAgo }
+    });
+    const summary = {
+      totalActions: weeklyActions.length,
+      totalDelta: weeklyActions.reduce((sum, a) => sum + a.co2Delta, 0),
+      byCategory: {}
+    };
+    weeklyActions.forEach(a => {
+      if (!summary.byCategory[a.category]) {
+        summary.byCategory[a.category] = { count: 0, delta: 0 };
+      }
+      summary.byCategory[a.category].count++;
+      summary.byCategory[a.category].delta += a.co2Delta;
+    });
+
     res.json({
       action: {
         id: actionLog._id,
@@ -100,7 +120,26 @@ router.post('/log', auth, validateActionLog, async (req, res) => {
       },
       updatedScore: user.currentScore,
       streak: user.streak,
-      weeklyScore: user.weeklyScore
+      weeklyScore: user.weeklyScore,
+      // Enriched profile for client-side state sync (avoids extra API calls)
+      updatedProfile: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        city: user.city,
+        country: user.country,
+        baselineScore: user.baselineScore,
+        currentScore: user.currentScore,
+        weeklyScore: user.weeklyScore,
+        streak: user.streak,
+        lastLogDate: user.lastLogDate,
+        onboardingComplete: user.onboardingComplete,
+        quizAnswers: user.quizAnswers,
+        scoreBreakdown: user.scoreBreakdown,
+        dailySnapshots: user.dailySnapshots,
+        createdAt: user.createdAt
+      },
+      summary
     });
   } catch (error) {
     if (error.name === 'ValidationError') {

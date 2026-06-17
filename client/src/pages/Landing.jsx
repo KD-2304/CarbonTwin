@@ -281,6 +281,8 @@ export default function Landing() {
                     value={carbonVal}
                     onChange={(e) => setCarbonVal(Number(e.target.value))}
                     className="w-full"
+                    aria-label="Simulate annual carbon footprint"
+                    aria-valuetext={`${carbonVal.toLocaleString()} kilograms CO₂ per year`}
                   />
 
                   {/* State Card */}

@@ -1,6 +1,6 @@
 const express = require('express');
 const auth = require('../middleware/auth');
-const { EMISSION_FACTORS, getEquivalencies } = require('../services/scoreService');
+const { EMISSION_FACTORS, getEquivalencies, calculateBaselineScore } = require('../services/scoreService');
 
 const router = express.Router();
 
@@ -14,7 +14,6 @@ router.post('/calculate', auth, (req, res) => {
     }
 
     // Calculate current score from answers
-    const { calculateBaselineScore } = require('../services/scoreService');
     const current = calculateBaselineScore(currentAnswers);
 
     // Apply modifications and recalculate
