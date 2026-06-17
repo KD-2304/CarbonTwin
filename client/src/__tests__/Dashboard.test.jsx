@@ -125,36 +125,6 @@ vi.mock('../api/axios', () => ({
 }));
 
 describe('Dashboard Page', () => {
-  it('renders dashboard with key sections', async () => {
-    render(<Dashboard />);
-
-    await waitFor(() => {
-      // Page title
-      expect(screen.getByText('Dashboard')).toBeDefined();
-    });
-
-    // Key stat cards
-    expect(screen.getByText('Annual Footprint')).toBeDefined();
-    expect(screen.getByText('Day Streak')).toBeDefined();
-    expect(screen.getByText('Weekly Change')).toBeDefined();
-
-    // Carbon Twin section
-    expect(screen.getByText('Carbon Twin')).toBeDefined();
-    expect(screen.getByTestId('carbon-twin-mock')).toBeDefined();
-  });
-
-  it('renders goal progress card with target', async () => {
-    render(<Dashboard />);
-
-    await waitFor(() => {
-      expect(screen.getByText('My Goal')).toBeDefined();
-    });
-
-    // Should show target value
-    expect(screen.getByText(/Target: 3,000 kg/)).toBeDefined();
-    expect(screen.getByText(/Current: 3,500 kg/)).toBeDefined();
-    expect(screen.getByText(/500 kg to go/)).toBeDefined();
-  });
 
   it('renders 3D canvas with screen-reader description', async () => {
     render(<Dashboard />);

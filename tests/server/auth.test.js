@@ -30,7 +30,7 @@ describe('POST /api/auth/register', () => {
       .send({ name: 'Test User', email: testEmail(), password: '123' });
 
     expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/6 characters/i);
+    expect(res.body.error).toMatch(/8 characters/i);
   });
 
   it('should register a new user and set a cookie token', async () => {

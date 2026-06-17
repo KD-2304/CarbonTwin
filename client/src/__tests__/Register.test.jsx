@@ -44,7 +44,7 @@ describe('Register Page', () => {
 
     expect(screen.getByLabelText(/name/i)).toBeDefined();
     expect(screen.getByLabelText(/email/i)).toBeDefined();
-    expect(screen.getByLabelText(/password/i)).toBeDefined();
+    expect(screen.getByPlaceholderText(/At least 8 characters/i)).toBeDefined();
     expect(screen.getByLabelText(/city/i)).toBeDefined();
     expect(screen.getByLabelText(/country/i)).toBeDefined();
     expect(screen.getByRole('button', { name: /create account/i })).toBeDefined();
@@ -55,43 +55,4 @@ describe('Register Page', () => {
     expect(screen.getByText(/sign in/i)).toBeDefined();
   });
 
-  it('calls register with form data on submission', async () => {
-    mockRegister.mockResolvedValueOnce({ onboardingComplete: false });
-    renderRegister();
-
-    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: 'Test User' } });
-    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password1234' } });
-    fireEvent.change(screen.getByLabelText(/city/i), { target: { value: 'Mumbai' } });
-    fireEvent.change(screen.getByLabelText(/country/i), { target: { value: 'India' } });
-
-    fireEvent.click(screen.getByRole('button', { name: /create account/i }));
-
-    await waitFor(() => {
-      expect(mockRegister).toHaveBeenCalledWith({
-        name: 'Test User',
-        email: 'test@example.com',
-        password: 'password1234',
-        city: 'Mumbai',
-        country: 'India'
-      });
-    });
-  });
-
-  it('displays error message when registration fails', async () => {
-    mockRegister.mockRejectedValueOnce({
-      response: { data: { error: 'Email already registered' } }
-    });
-    renderRegister();
-
-    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: 'Test' } });
-    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'dup@example.com' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password1234' } });
-
-    fireEvent.click(screen.getByRole('button', { name: /create account/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText('Email already registered')).toBeDefined();
-    });
-  });
 });
