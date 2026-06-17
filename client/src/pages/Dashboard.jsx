@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { useScore } from "../context/ScoreContext";
+import { userAPI } from "../api/axios";
 import CarbonTwin from "../components/twin/CarbonTwin";
 import ScoreBreakdown from "../components/charts/ScoreBreakdown";
 import ScoreHistory from "../components/charts/ScoreHistory";
@@ -10,7 +11,7 @@ import AiCoach from "../components/AiCoach";
 import AnimatedNumber from "../components/ui/AnimatedNumber";
 import { getScoreColor, getScoreLabel } from "../utils/scoreCalculator";
 import { BENCHMARKS } from "../utils/emissionFactors";
-import { Flame, TrendingDown, TrendingUp, Zap, AlertTriangle } from "lucide-react";
+import { Flame, TrendingDown, TrendingUp, Zap, AlertTriangle, Target } from "lucide-react";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -21,6 +22,9 @@ export default function Dashboard() {
     summary,
   } = useScore();
   const [loaded, setLoaded] = useState(false);
+  const [goalInput, setGoalInput] = useState('');
+  const [settingGoal, setSettingGoal] = useState(false);
+  const [showGoalForm, setShowGoalForm] = useState(false);
 
   useEffect(() => {
     fetchDashboardData().then(() =>
@@ -34,6 +38,24 @@ export default function Dashboard() {
   const snapshots = scoreData?.dailySnapshots || user?.dailySnapshots || [];
   const streakStatus = user?.streakStatus;
   const weeklyDelta = summary?.totalDelta || 0;
+  const baseline = user?.baselineScore || scoreData?.baselineScore || 0;
+  const targetGoal = user?.targetGoal || scoreData?.targetGoal;
+
+  const handleSetGoal = async () => {
+    const goal = Number(goalInput);
+    if (!goal || goal < 0 || goal > 50000) return;
+    setSettingGoal(true);
+    try {
+      await userAPI.setGoal(goal);
+      await fetchDashboardData();
+      setShowGoalForm(false);
+      setGoalInput('');
+    } catch (err) {
+      console.error('Failed to set goal:', err);
+    } finally {
+      setSettingGoal(false);
+    }
+  };
 
   const fadeIn = {
     initial: { opacity: 0, y: 16 },
@@ -149,6 +171,79 @@ export default function Dashboard() {
                 {summary?.totalActions || 0} actions logged
               </p>
             </div>
+          </motion.section>
+
+          {/* Goal Progress Card */}
+          <motion.section
+            {...fadeIn}
+            transition={{ delay: 0.08 }}
+            className="surface surface-accent-teal p-5"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Target size={14} className="text-teal-400" />
+                <p className="section-title">My Goal</p>
+              </div>
+              {targetGoal && !showGoalForm && (
+                <button
+                  onClick={() => { setShowGoalForm(true); setGoalInput(String(targetGoal)); }}
+                  className="text-[10px] font-bold text-sand-500 hover:text-sand-300 transition-colors uppercase tracking-wider"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
+
+            {targetGoal && !showGoalForm ? (
+              <div>
+                <div className="flex justify-between text-xs mb-2">
+                  <span className="text-sand-500">Current: {score.toLocaleString()} kg</span>
+                  <span className="text-teal-400 font-bold">Target: {targetGoal.toLocaleString()} kg</span>
+                </div>
+                <div className="h-2.5 overflow-hidden rounded-full bg-base-950">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.max(0, Math.min(100, ((baseline - score) / Math.max(1, baseline - targetGoal)) * 100))}%` }}
+                    transition={{ duration: 1.2, delay: 0.3 }}
+                    className="h-full rounded-full bg-gradient-to-r from-teal-500 to-sage-400"
+                  />
+                </div>
+                <p className="mt-2 text-xs text-sand-500">
+                  {score <= targetGoal
+                    ? '🎉 Goal achieved! Consider setting a more ambitious target.'
+                    : `${(score - targetGoal).toLocaleString()} kg to go — keep logging daily actions!`
+                  }
+                </p>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={goalInput}
+                  onChange={(e) => setGoalInput(e.target.value)}
+                  placeholder="e.g. 3000"
+                  className="input-field py-2 text-sm flex-1"
+                  aria-label="Set your annual CO₂ target goal in kilograms"
+                  min={0}
+                  max={50000}
+                />
+                <button
+                  onClick={handleSetGoal}
+                  disabled={settingGoal || !goalInput}
+                  className="btn-primary py-2 px-4 text-xs"
+                >
+                  {settingGoal ? 'Saving…' : 'Set Goal'}
+                </button>
+                {showGoalForm && (
+                  <button
+                    onClick={() => setShowGoalForm(false)}
+                    className="text-xs text-sand-500 hover:text-sand-300 px-2"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            )}
           </motion.section>
 
           {/* Carbon Twin — Full-width canvas */}

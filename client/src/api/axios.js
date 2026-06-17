@@ -63,6 +63,7 @@ export const userAPI = {
   updateProfile: (data) => API.put('/user/profile', data),
   getScore: () => API.get('/user/score'),
   getDashboardSummary: () => API.get('/user/dashboard-summary'),
+  setGoal: (targetGoal) => API.put('/user/goal', { targetGoal }),
 };
 
 // ─── QUIZ ─────────────────────────────────────────────────────

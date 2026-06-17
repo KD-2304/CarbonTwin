@@ -1,0 +1,101 @@
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import Login from '../pages/Login.jsx';
+
+// Mock AuthContext
+const mockLogin = vi.fn();
+
+vi.mock('../context/AuthContext.jsx', () => ({
+  useAuth: () => ({
+    user: null,
+    login: mockLogin,
+    loading: false,
+  }),
+  AuthProvider: ({ children }) => <>{children}</>,
+}));
+
+// Mock framer-motion
+vi.mock('framer-motion', () => {
+  const motionMock = new Proxy({}, {
+    get: (target, prop) => {
+      return ({ children, ...props }) => {
+        const { initial, animate, exit, transition, whileHover, whileTap, variants, ...domProps } = props;
+        const Component = prop;
+        return <Component {...domProps}>{children}</Component>;
+      };
+    }
+  });
+  return {
+    AnimatePresence: ({ children }) => children,
+    motion: motionMock
+  };
+});
+
+describe('Login Page', () => {
+  const renderLogin = () => render(
+    <MemoryRouter>
+      <Login />
+    </MemoryRouter>
+  );
+
+  it('renders login form with email and password fields', () => {
+    renderLogin();
+
+    expect(screen.getByLabelText(/email/i)).toBeDefined();
+    expect(screen.getByLabelText(/password/i)).toBeDefined();
+    expect(screen.getByRole('button', { name: /sign in/i })).toBeDefined();
+  });
+
+  it('renders a link to the registration page', () => {
+    renderLogin();
+    expect(screen.getByText(/create one/i)).toBeDefined();
+  });
+
+  it('calls login with email and password on form submission', async () => {
+    mockLogin.mockResolvedValueOnce({ onboardingComplete: true });
+    renderLogin();
+
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    const submitButton = screen.getByRole('button', { name: /sign in/i });
+
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(mockLogin).toHaveBeenCalledWith('test@example.com', 'password123');
+    });
+  });
+
+  it('displays error message when login fails', async () => {
+    mockLogin.mockRejectedValueOnce({
+      response: { data: { error: 'Invalid credentials' } }
+    });
+    renderLogin();
+
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    const submitButton = screen.getByRole('button', { name: /sign in/i });
+
+    fireEvent.change(emailInput, { target: { value: 'bad@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'wrong' } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Invalid credentials')).toBeDefined();
+    });
+  });
+
+  it('has a toggle button for password visibility', () => {
+    renderLogin();
+
+    const toggleBtn = screen.getByLabelText(/show password/i);
+    expect(toggleBtn).toBeDefined();
+
+    fireEvent.click(toggleBtn);
+
+    expect(screen.getByLabelText(/hide password/i)).toBeDefined();
+  });
+});

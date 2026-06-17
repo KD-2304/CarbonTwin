@@ -105,7 +105,7 @@ export default function Register() {
               <div>
                 <label htmlFor="register-password" className="mb-1.5 block text-xs font-bold text-sand-300 uppercase tracking-wider">Password</label>
                 <div className="relative">
-                  <input id="register-password" type={showPw ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} className="input-field pr-10" placeholder="At least 6 characters" minLength={6} required />
+                  <input id="register-password" type={showPw ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} className="input-field pr-10" placeholder="At least 8 characters" minLength={8} required />
                   <button
                     type="button"
                     onClick={() => setShowPw(!showPw)}
