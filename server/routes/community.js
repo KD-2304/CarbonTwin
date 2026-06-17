@@ -59,6 +59,8 @@ router.get('/stats', auth, async (req, res) => {
     const cityHealth = Math.max(0, Math.min(100, Math.round(100 - ((communityAverage - 2000) / 60))));
 
     const users = await User.find({ onboardingComplete: true })
+      .sort({ currentScore: 1 })
+      .limit(50)
       .select('name currentScore')
       .lean();
 

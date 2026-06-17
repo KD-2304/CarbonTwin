@@ -36,7 +36,8 @@ const registerSchema = z.object({
     .trim()
     .email('Email is required and must be a valid email address'),
   password: z.string({ required_error: 'Password is required' })
-    .min(8, 'Password is required and must be at least 8 characters'),
+    .min(8, 'Password is required and must be at least 8 characters')
+    .max(100, 'Password is required and must be under 100 characters'),
   city: z.string().max(100, 'City name is too long').optional().or(z.literal('')),
   country: z.string().max(100, 'Country name is too long').optional().or(z.literal(''))
 });
@@ -44,14 +45,10 @@ const registerSchema = z.object({
 const loginSchema = z.object({
   email: z.string({ required_error: 'Email is required' }).trim(),
   password: z.string({ required_error: 'Password is required' })
+    .max(100, 'Password must be under 100 characters')
 });
 
 const validateRegisterInput = (req, res, next) => {
-  const { name, email, password } = req.body;
-  if (!name || !email || !password) {
-    return res.status(400).json({ error: 'Name, email, and password are required' });
-  }
-
   const result = registerSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = result.error.issues[0].message;
@@ -62,11 +59,6 @@ const validateRegisterInput = (req, res, next) => {
 };
 
 const validateLoginInput = (req, res, next) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password are required' });
-  }
-
   const result = loginSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = result.error.issues[0].message;

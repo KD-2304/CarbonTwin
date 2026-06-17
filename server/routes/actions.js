@@ -40,11 +40,6 @@ const actionLogSchema = z.object({
 });
 
 const validateActionLog = (req, res, next) => {
-  const { category, action } = req.body;
-  if (!category || !action) {
-    return res.status(400).json({ error: 'Category and action are required' });
-  }
-
   const result = actionLogSchema.safeParse(req.body);
   if (!result.success) {
     const errorMsg = result.error.issues[0].message;

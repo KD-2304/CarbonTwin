@@ -1,5 +1,6 @@
 const cron = require('node-cron');
 const User = require('../models/User');
+const { getStartOfWeek } = require('../utils/dateHelpers');
 
 console.log('⏰ Cron service initialized');
 
@@ -9,9 +10,18 @@ const resetJob = cron.schedule('0 0 * * 1', async () => {
   try {
     console.log('🔄 Weekly cron job started: Resetting user weekly scores...');
     
+    const now = new Date();
+    const startOfCurrentWeek = getStartOfWeek(now);
+
     const result = await User.updateMany(
-      { weeklyScore: { $ne: 0 } },
-      { $set: { weeklyScore: 0 } }
+      {
+        $or: [
+          { weeklyScore: { $ne: 0 } },
+          { lastWeeklyReset: { $lt: startOfCurrentWeek } },
+          { lastWeeklyReset: null }
+        ]
+      },
+      { $set: { weeklyScore: 0, lastWeeklyReset: now } }
     );
     const updatedCount = result.modifiedCount;
     

@@ -1,4 +1,5 @@
 const express = require('express');
+const { z } = require('zod');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
 const { getStreakStatus } = require('../services/scoreService');
@@ -42,33 +43,32 @@ router.get('/profile', auth, async (req, res) => {
   }
 });
 
+const profileUpdateSchema = z.object({
+  name: z.string()
+    .trim()
+    .min(2, 'Name must be between 2 and 50 characters')
+    .max(50, 'Name must be between 2 and 50 characters')
+    .optional(),
+  city: z.string().max(100, 'City name must be under 100 characters').optional().or(z.literal('')),
+  country: z.string().max(100, 'Country name must be under 100 characters').optional().or(z.literal(''))
+});
+
 // PUT /api/user/profile
 router.put('/profile', auth, async (req, res) => {
   try {
-    const { name, city, country } = req.body;
-
-    if (name !== undefined) {
-      if (typeof name !== 'string' || name.trim().length < 2 || name.length > 50) {
-        return res.status(400).json({ error: 'Name must be between 2 and 50 characters' });
-      }
-    }
-    if (city !== undefined) {
-      if (typeof city !== 'string' || city.length > 100) {
-        return res.status(400).json({ error: 'City name must be under 100 characters' });
-      }
-    }
-    if (country !== undefined) {
-      if (typeof country !== 'string' || country.length > 100) {
-        return res.status(400).json({ error: 'Country name must be under 100 characters' });
-      }
+    const result = profileUpdateSchema.safeParse(req.body);
+    if (!result.success) {
+      const errorMsg = result.error.issues[0].message;
+      return res.status(400).json({ error: errorMsg });
     }
 
+    const { name, city, country } = result.data;
     const updates = {};
-    if (name) updates.name = name.trim();
+    if (name !== undefined) updates.name = name;
     if (city !== undefined) updates.city = city.trim();
     if (country !== undefined) updates.country = country.trim();
 
-    const user = await User.findByIdAndUpdate(req.userId, updates, { new: true });
+    const user = await User.findByIdAndUpdate(req.userId, updates, { new: true, runValidators: true });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     res.json({

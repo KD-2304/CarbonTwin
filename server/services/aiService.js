@@ -9,13 +9,20 @@ try {
   console.warn('Google Generative AI SDK not installed. AI features will be disabled.');
 }
 
+let genAIInstance = null;
+let cachedModel = null;
+
 function getClient() {
   if (!process.env.GEMINI_API_KEY) {
     return null;
   }
+  if (cachedModel) {
+    return cachedModel;
+  }
   try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    return genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    genAIInstance = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    cachedModel = genAIInstance.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    return cachedModel;
   } catch (e) {
     console.error('Failed to initialize Gemini client:', e.message);
     return null;
@@ -33,9 +40,20 @@ async function generateWeeklyInsight(userData) {
 
   const { currentScore, scoreBreakdown, recentActions, weakestCategory } = userData;
 
-  const prompt = `You are a friendly, knowledgeable carbon footprint coach. Analyze this user's data and provide personalized advice.
+  const systemInstruction = `You are a friendly, knowledgeable carbon footprint coach. Analyze the user's carbon footprint data and provide personalized advice.
+You must respond in the following JSON format:
+{
+  "insight": "One key insight about their biggest emission source (2-3 sentences, specific to their data)",
+  "actions": [
+    {"action": "Specific action 1", "saving": "X kg CO₂/week"},
+    {"action": "Specific action 2", "saving": "X kg CO₂/week"},
+    {"action": "Specific action 3", "saving": "X kg CO₂/week"}
+  ],
+  "encouragement": "One encouraging line about their progress (personalized)"
+}
+Use the user's actual numbers. Be specific, not generic. Reference their exact scores.`;
 
-USER DATA:
+  const prompt = `USER DATA:
 - Current annual carbon footprint: ${currentScore} kg CO₂/year
 - Score breakdown:
   • Transport: ${scoreBreakdown.transport} kg CO₂/year
@@ -49,30 +67,18 @@ ${recentActions.map(a => `  ${a.timestamp}: ${a.action} (${a.co2Delta > 0 ? '+' 
 
 GLOBAL CONTEXT:
 - World average: 4,000 kg CO₂/year
-- Paris Agreement target: 2,000 kg CO₂/year
-
-Respond in this EXACT JSON format (no markdown, no code fences, just raw JSON):
-{
-  "insight": "One key insight about their biggest emission source (2-3 sentences, specific to their data)",
-  "actions": [
-    {"action": "Specific action 1", "saving": "X kg CO₂/week"},
-    {"action": "Specific action 2", "saving": "X kg CO₂/week"},
-    {"action": "Specific action 3", "saving": "X kg CO₂/week"}
-  ],
-  "encouragement": "One encouraging line about their progress (personalized)"
-}
-
-Use their ACTUAL numbers. Be specific, not generic. Reference their exact scores.`;
+- Paris Agreement target: 2,000 kg CO₂/year`;
 
   try {
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      systemInstruction: systemInstruction,
+      generationConfig: {
+        responseMimeType: 'application/json'
+      }
+    });
     const text = result.response.text();
-    // Extract JSON from response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
-    }
-    return getFallbackInsight(userData);
+    return JSON.parse(text);
   } catch (error) {
     console.error('Gemini API error (weekly insight):', error.message);
     return getFallbackInsight(userData);
@@ -108,12 +114,13 @@ RULES:
 - Be specific with suggestions — include estimated kg CO₂ savings
 - Be encouraging but honest
 - Keep responses concise (2-4 paragraphs max)
-- Use emoji sparingly for friendliness
-
-USER QUESTION: ${message}`;
+- Use emoji sparingly for friendliness`;
 
   try {
-    const result = await model.generateContent(systemPrompt);
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: message }] }],
+      systemInstruction: systemPrompt
+    });
     return { response: result.response.text() };
   } catch (error) {
     console.error('Gemini API error (chat):', error.message);
@@ -144,9 +151,15 @@ async function generateWeeklyReport(userData, weekActions) {
     };
   }
 
-  const prompt = `Generate a weekly carbon footprint report for this user.
+  const systemInstruction = `You are a weekly carbon footprint report generator. Analyze the user's data and activity, and generate a report.
+You must respond in the following JSON format:
+{
+  "summary": "2-3 sentence summary of the week's performance",
+  "insight": "Key insight about what improved most or needs work",
+  "goal": "One specific, measurable goal for next week"
+}`;
 
-USER PROFILE:
+  const prompt = `USER PROFILE:
 - Current annual score: ${userData.currentScore} kg CO₂/year
 - Baseline score: ${userData.baselineScore} kg CO₂/year
 - Current streak: ${userData.streak} days
@@ -155,20 +168,18 @@ THIS WEEK'S ACTIVITY:
 - Total actions logged: ${weekActions.length}
 - Net CO₂ impact: ${totalDelta > 0 ? '+' : ''}${totalDelta.toFixed(1)} kg
 - By category: ${JSON.stringify(categoryTotals)}
-- Actions: ${weekActions.map(a => `${a.action} (${a.co2Delta}kg)`).join(', ')}
-
-Respond in this EXACT JSON format (no markdown, no code fences, just raw JSON):
-{
-  "summary": "2-3 sentence summary of the week's performance",
-  "insight": "Key insight about what improved most or needs work",
-  "goal": "One specific, measurable goal for next week"
-}`;
+- Actions: ${weekActions.map(a => `${a.action} (${a.co2Delta}kg)`).join(', ')}`;
 
   try {
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      systemInstruction: systemInstruction,
+      generationConfig: {
+        responseMimeType: 'application/json'
+      }
+    });
     const text = result.response.text();
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+    const parsed = JSON.parse(text);
 
     return {
       summary: parsed.summary || `Logged ${weekActions.length} actions this week.`,

@@ -71,8 +71,12 @@ app.use((req, res, next) => {
     let csrfCookie = null;
     if (req.headers.cookie) {
       const cookies = req.headers.cookie.split(';').reduce((acc, c) => {
-        const [key, value] = c.split('=').map(item => item.trim());
-        if (key && value) acc[key] = decodeURIComponent(value);
+        const eqIdx = c.indexOf('=');
+        if (eqIdx !== -1) {
+          const key = c.slice(0, eqIdx).trim();
+          const val = c.slice(eqIdx + 1).trim();
+          if (key) acc[key] = decodeURIComponent(val);
+        }
         return acc;
       }, {});
       csrfCookie = cookies.ctc_csrf_token;
