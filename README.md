@@ -142,6 +142,22 @@ npm run test:client # Run React UI component and calculator tests
 
 ---
 
+## 🌐 Deployment Architecture
+
+Carbon Twin City is optimized for cross-origin cloud hosting configurations:
+
+*   **Frontend**: Hosted on **Vercel** (serving production and preview subdomains like `https://*.vercel.app`).
+*   **Backend**: Deployed on **AWS** (such as Elastic Beanstalk, EC2, or ECS).
+*   **NGINX Reverse Proxy**: Positioned in front of the actual Express application process (running on port `5000`) on AWS to handle:
+    *   SSL/TLS termination (handling incoming secure HTTPS requests).
+    *   Proxying traffic securely to the Node.js application process.
+    *   Header forwarding (attaching `X-Forwarded-For` and `X-Forwarded-Proto`).
+*   **Express Proxy Trust**: The backend configuration includes `app.set('trust proxy', 1)` to trust NGINX headers, ensuring correct IP resolution and cookie transmission over HTTPS.
+*   **Cross-Origin Cookie & CSRF Security**: In production, token and CSRF session cookies utilize `sameSite: 'none'` and `secure: true`. To bypass browser restrictions preventing the Vercel frontend from reading the AWS-owned secure cookie, the API returns the CSRF token in response bodies during login, registration, and profile fetching. The client caches this token in-memory and attaches it via the `X-CTC-Request` header on mutating requests (POST, PUT, DELETE).
+*   **Dynamic CORS Mapping**: The CORS configuration parses comma-separated allowed origins and supports wildcard matches (e.g. `https://*.vercel.app`) to dynamically support Vercel preview environments out of the box.
+
+---
+
 ## 🔌 API Endpoints
 
 All backend routes are prefixed with `/api`. Modifying endpoints require the `X-CTC-Request: true` header for CSRF protection.

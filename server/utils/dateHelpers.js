@@ -11,11 +11,11 @@
  */
 function getStartOfWeek(date) {
   const d = new Date(date);
-  const day = d.getUTCDay();
+  const day = d.getDay();
   // Get days to subtract to reach Monday (1). Sunday (0) -> subtract 6 days.
-  const diff = d.getUTCDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), diff));
-  monday.setUTCHours(0, 0, 0, 0);
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(d.setDate(diff));
+  monday.setHours(0, 0, 0, 0);
   return monday;
 }
 

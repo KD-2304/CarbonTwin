@@ -268,13 +268,44 @@ npm run preview
 4. Output directory: `dist`
 5. Set environment variable `VITE_API_URL` to your backend URL
 
-#### Backend → Render / Railway
+#### Backend → AWS (EC2 / Elastic Beanstalk) with NGINX
 
-1. Connect your repo
-2. Set the root directory to `server`
-3. Build command: `npm install`
-4. Start command: `node index.js`
-5. Add all environment variables from `.env`
+1. Deploy the backend code (`/server`) to an AWS EC2 instance or Elastic Beanstalk application.
+2. In the AWS environment, add all required secrets (`JWT_SECRET`, `MONGO_URI`, `GEMINI_API_KEY`, etc.) as environment variables.
+3. Configure `CLIENT_URL` to point to your Vercel frontend domain (or a comma-separated list of URLs if you use wildcards for preview domains, e.g. `https://my-app.vercel.app,https://*.vercel.app`).
+4. Install and configure **NGINX** to sit in front of the actual Node.js Express process (which runs on port `5000` by default). Below is a recommended NGINX configuration block to handle SSL termination, proxy routing, and proxy header forwarding:
+
+```nginx
+server {
+    listen 80;
+    server_name api.carbontwincity.com; # Replace with your backend API domain
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name api.carbontwincity.com; # Replace with your backend API domain
+
+    ssl_certificate /etc/letsencrypt/live/api.carbontwincity.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.carbontwincity.com/privkey.pem;
+
+    location / {
+        proxy_pass http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        
+        # Forward client IP and connection protocol headers
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+5. Ensure `NODE_ENV=production` is set so that the server trusts the NGINX proxy headers (via `app.set('trust proxy', 1)`) and sets secure, sameSite cross-origin cookies.
 
 ### Option B: Single Server Deployment
 

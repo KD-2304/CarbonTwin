@@ -20,23 +20,29 @@ export const registerNavigate = (nav) => {
   navigateFn = nav;
 };
 
+let csrfTokenMemory = null;
+
 // Attach custom security header to every request for CSRF protection
 API.interceptors.request.use(config => {
-  const csrfToken = getCookie('ctc_csrf_token');
-  if (csrfToken) {
-    config.headers['X-CTC-Request'] = csrfToken;
-  } else {
-    config.headers['X-CTC-Request'] = 'true'; // Fallback
-  }
+  const csrfCookie = getCookie('ctc_csrf_token');
+  const tokenToUse = csrfTokenMemory || csrfCookie || 'true';
+  config.headers['X-CTC-Request'] = tokenToUse;
   return config;
 });
 
-// Handle 401 responses globally
+// Handle responses globally (extract CSRF tokens and handle 401s)
 API.interceptors.response.use(
-  response => response,
+  response => {
+    // If the server returns a new CSRF token in the response body, store it
+    if (response.data && response.data.csrfToken) {
+      csrfTokenMemory = response.data.csrfToken;
+    }
+    return response;
+  },
   error => {
     if (error.response?.status === 401) {
       localStorage.removeItem('ctc_user');
+      csrfTokenMemory = null;
       if (window.location.pathname !== '/login') {
         if (navigateFn) {
           navigateFn('/login');

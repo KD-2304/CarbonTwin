@@ -22,18 +22,33 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // ─── CORS CONFIGURATION ────────────────────────────────────────
-let clientOrigin = process.env.CLIENT_URL || (process.env.NODE_ENV === 'production' ? null : 'http://localhost:5173');
-if (clientOrigin && clientOrigin.endsWith('/')) {
-  clientOrigin = clientOrigin.slice(0, -1);
-}
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',').map(url => url.trim().replace(/\/$/, ''))
+  : ['http://localhost:5173'];
 
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps, tools, or same-origin)
-    if (!origin || origin === clientOrigin) {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (allowed.includes('*')) {
+        // Convert wildcard pattern (e.g. https://*.vercel.app) to regex
+        const regexStr = '^' + allowed
+          .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+          .replace(/\*/g, '.*') + '$';
+        const regex = new RegExp(regexStr);
+        return regex.test(origin);
+      }
+      return origin === allowed;
+    });
+
+    if (isAllowed) {
       callback(null, true);
     } else {
-      callback(new Error(`Not allowed by CORS. Incoming origin: "${origin}" does not match configured: "${clientOrigin}"`));
+      callback(new Error(`Not allowed by CORS. Incoming origin: "${origin}" does not match configured origins: "${allowedOrigins.join(', ')}"`));
     }
   },
   credentials: true

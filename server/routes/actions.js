@@ -16,10 +16,12 @@ const validActions = {
 };
 
 const actionLogSchema = z.object({
-  category: z.enum(['transport', 'meal', 'home', 'shopping'], {
+  category: z.string({ message: 'Category is required' }).refine(val => {
+    return ['transport', 'meal', 'home', 'shopping'].includes(val);
+  }, {
     message: 'Invalid action category'
   }),
-  action: z.string({ required_error: 'Action is required' }),
+  action: z.string({ message: 'Action is required' }),
   notes: z.string().max(500, 'Notes must be under 500 characters').optional().or(z.literal('')),
   km: z.coerce.number().optional()
 }).refine(data => {

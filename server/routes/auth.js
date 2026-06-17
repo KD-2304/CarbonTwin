@@ -28,14 +28,14 @@ const registerLimiter = rateLimit({
 
 // Input Validation Schemas
 const registerSchema = z.object({
-  name: z.string({ required_error: 'Name is required' })
+  name: z.string({ message: 'Name is required' })
     .trim()
     .min(2, 'Name is required and must be between 2 and 50 characters')
     .max(50, 'Name is required and must be between 2 and 50 characters'),
-  email: z.string({ required_error: 'Email is required' })
+  email: z.string({ message: 'Email is required' })
     .trim()
     .email('Email is required and must be a valid email address'),
-  password: z.string({ required_error: 'Password is required' })
+  password: z.string({ message: 'Password is required' })
     .min(8, 'Password is required and must be at least 8 characters')
     .max(100, 'Password is required and must be under 100 characters'),
   city: z.string().max(100, 'City name is too long').optional().or(z.literal('')),
@@ -43,8 +43,8 @@ const registerSchema = z.object({
 });
 
 const loginSchema = z.object({
-  email: z.string({ required_error: 'Email is required' }).trim(),
-  password: z.string({ required_error: 'Password is required' })
+  email: z.string({ message: 'Email is required' }).trim(),
+  password: z.string({ message: 'Password is required' })
     .max(100, 'Password must be under 100 characters')
 });
 
@@ -112,6 +112,7 @@ router.post('/register', registerLimiter, validateRegisterInput, async (req, res
     });
 
     res.status(201).json({
+      csrfToken,
       user: {
         id: user._id,
         name: user.name,
@@ -167,6 +168,7 @@ router.post('/login', loginLimiter, validateLoginInput, async (req, res) => {
     });
 
     res.json({
+      csrfToken,
       user: {
         id: user._id,
         name: user.name,

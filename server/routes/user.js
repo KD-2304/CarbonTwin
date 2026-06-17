@@ -1,5 +1,6 @@
 const express = require('express');
 const { z } = require('zod');
+const crypto = require('crypto');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
 const { getStreakStatus } = require('../services/scoreService');
@@ -18,7 +19,32 @@ router.get('/profile', auth, async (req, res) => {
 
     const streakStatus = getStreakStatus(user.lastLogDate, user.streak);
 
+    let csrfToken = null;
+    if (req.headers.cookie) {
+      const cookies = req.headers.cookie.split(';').reduce((acc, c) => {
+        const eqIdx = c.indexOf('=');
+        if (eqIdx !== -1) {
+          const key = c.slice(0, eqIdx).trim();
+          const val = c.slice(eqIdx + 1).trim();
+          if (key) acc[key] = decodeURIComponent(val);
+        }
+        return acc;
+      }, {});
+      csrfToken = cookies.ctc_csrf_token;
+    }
+
+    if (!csrfToken) {
+      csrfToken = crypto.randomBytes(24).toString('hex');
+      res.cookie('ctc_csrf_token', csrfToken, {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+      });
+    }
+
     res.json({
+      csrfToken,
       id: user._id,
       name: user.name,
       email: user.email,
@@ -167,7 +193,32 @@ router.get('/dashboard-summary', auth, async (req, res) => {
       summary.byCategory[a.category].delta += a.co2Delta;
     });
 
+    let csrfToken = null;
+    if (req.headers.cookie) {
+      const cookies = req.headers.cookie.split(';').reduce((acc, c) => {
+        const eqIdx = c.indexOf('=');
+        if (eqIdx !== -1) {
+          const key = c.slice(0, eqIdx).trim();
+          const val = c.slice(eqIdx + 1).trim();
+          if (key) acc[key] = decodeURIComponent(val);
+        }
+        return acc;
+      }, {});
+      csrfToken = cookies.ctc_csrf_token;
+    }
+
+    if (!csrfToken) {
+      csrfToken = crypto.randomBytes(24).toString('hex');
+      res.cookie('ctc_csrf_token', csrfToken, {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+      });
+    }
+
     res.json({
+      csrfToken,
       profile: userProfile,
       history: historyActions,
       summary: summary
