@@ -17,6 +17,15 @@ const loginLimiter = rateLimit({
   skipSuccessfulRequests: true // Only count failed attempts
 });
 
+// Rate limiter for registration to prevent spam account creation
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // 10 attempts per hour
+  message: { error: 'Too many registration attempts from this IP, please try again after an hour.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
 // Input Validation Schemas
 const registerSchema = z.object({
   name: z.string({ required_error: 'Name is required' })
@@ -68,7 +77,7 @@ const validateLoginInput = (req, res, next) => {
 };
 
 // POST /api/auth/register
-router.post('/register', validateRegisterInput, async (req, res) => {
+router.post('/register', registerLimiter, validateRegisterInput, async (req, res) => {
   try {
     const { name, email, password, city, country } = req.body;
 

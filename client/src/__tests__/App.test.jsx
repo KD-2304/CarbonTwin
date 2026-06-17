@@ -2,23 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import App from '../App.jsx';
 
-// Mock framer-motion to avoid animation-related test issues
-vi.mock('framer-motion', () => {
-  const motionMock = new Proxy({}, {
-    get: (target, prop) => {
-      return ({ children, ...props }) => {
-        const { initial, animate, exit, transition, whileHover, whileTap, variants, ...domProps } = props;
-        const Component = prop;
-        return <Component {...domProps}>{children}</Component>;
-      };
-    }
-  });
-  return {
-    AnimatePresence: ({ children }) => children,
-    motion: motionMock
-  };
-});
-
 // Mock Three.js components to avoid canvas issues in JSDOM
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }) => <div data-testid="three-canvas">{children}</div>,

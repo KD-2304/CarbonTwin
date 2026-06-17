@@ -472,6 +472,8 @@ export default function CarbonTwin({ score = 1500, animating = false }) {
         dpr={[1, 2]}
         shadows={{ enabled: true, type: THREE.PCFSoftShadowMap }}
         gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
+        role="img"
+        aria-label={`Interactive 3D carbon twin avatar. Currently indicating ${score.toLocaleString()} kg CO2/year footprint, rating as ${getTierTheme(score).label}.`}
       >
         <EnvironmentStage score={score} />
         <CelestialBody score={score} />

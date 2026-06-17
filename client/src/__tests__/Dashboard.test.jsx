@@ -99,22 +99,6 @@ vi.mock('../components/AiCoach.jsx', () => ({
   default: () => <div data-testid="ai-coach-mock">Mock Coach</div>
 }));
 
-// Mock framer-motion
-vi.mock('framer-motion', () => {
-  const motionMock = new Proxy({}, {
-    get: (target, prop) => {
-      return ({ children, ...props }) => {
-        const { initial, animate, exit, transition, whileHover, whileTap, variants, layoutId, ...domProps } = props;
-        const Component = prop;
-        return <Component {...domProps}>{children}</Component>;
-      };
-    }
-  });
-  return {
-    AnimatePresence: ({ children }) => children,
-    motion: motionMock
-  };
-});
 
 // Mock API
 vi.mock('../api/axios', () => ({

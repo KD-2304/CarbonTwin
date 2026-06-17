@@ -15,22 +15,6 @@ vi.mock('../context/AuthContext.jsx', () => ({
   AuthProvider: ({ children }) => <>{children}</>,
 }));
 
-// Mock framer-motion
-vi.mock('framer-motion', () => {
-  const motionMock = new Proxy({}, {
-    get: (target, prop) => {
-      return ({ children, ...props }) => {
-        const { initial, animate, exit, transition, whileHover, whileTap, variants, ...domProps } = props;
-        const Component = prop;
-        return <Component {...domProps}>{children}</Component>;
-      };
-    }
-  });
-  return {
-    AnimatePresence: ({ children }) => children,
-    motion: motionMock
-  };
-});
 
 describe('Login Page', () => {
   const renderLogin = () => render(

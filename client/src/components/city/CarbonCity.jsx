@@ -615,6 +615,8 @@ export default function CarbonCity({ communityScore = 2200, users = [] }) {
         camera={{ position: [10, 7, 10], fov: 42 }} 
         shadows={{ enabled: true, type: THREE.PCFSoftShadowMap }}
         gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
+        role="img"
+        aria-label={`Interactive 3D community carbon twin city. The height and appearance of skyscrapers represent each user's carbon footprint. The current community average is ${communityScore.toLocaleString()} kg CO2/year.`}
       >
         <CityScene communityScore={communityScore} users={users} />
         

@@ -78,23 +78,6 @@ vi.mock('../components/twin/CarbonTwin.jsx', () => ({
   default: () => <div data-testid="carbon-twin-mock">Mock Twin</div>
 }));
 
-// Mock framer-motion
-vi.mock('framer-motion', () => {
-  const motionMock = new Proxy({}, {
-    get: (target, prop) => {
-      return ({ children, ...props }) => {
-        const { initial, animate, exit, transition, whileHover, whileTap, variants, ...domProps } = props;
-        const Component = prop;
-        return <Component {...domProps}>{children}</Component>;
-      };
-    }
-  });
-  return {
-    AnimatePresence: ({ children }) => children,
-    motion: motionMock
-  };
-});
-
 // Mock axios API calls to avoid actual network errors in tests
 vi.mock('../api/axios', () => ({
   simulatorAPI: {
