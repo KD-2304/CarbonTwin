@@ -2,10 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import ActionLogger from '../components/ActionLogger.jsx';
 import Simulator from '../pages/Simulator.jsx';
-import { ScoreProvider } from '../context/ScoreContext.jsx';
-import { AuthProvider } from '../context/AuthContext.jsx';
 
-// Mock AuthContext
+// Mock auth hook
 const mockUser = {
   id: 'user123',
   name: 'Test Green User',
@@ -29,13 +27,12 @@ const mockUser = {
   }
 };
 
-vi.mock('../context/AuthContext.jsx', () => {
+vi.mock('../context/useAuth.js', () => {
   return {
     useAuth: () => ({
       user: mockUser,
       refreshUser: vi.fn(),
     }),
-    AuthProvider: ({ children }) => <>{children}</>
   };
 });
 
@@ -44,7 +41,7 @@ const mockLogAction = vi.fn().mockResolvedValue({
   action: { co2Delta: -0.5, label: 'Vegan meal' },
 });
 
-vi.mock('../context/ScoreContext.jsx', async () => {
+vi.mock('../context/useScore.js', async () => {
   const { ACTION_OPTIONS } = await import('../utils/emissionFactors');
   return {
     useScore: () => ({
@@ -57,7 +54,6 @@ vi.mock('../context/ScoreContext.jsx', async () => {
       summary: { totalDelta: -5, totalActions: 3 },
       actionOptions: ACTION_OPTIONS
     }),
-    ScoreProvider: ({ children }) => <>{children}</>
   };
 });
 

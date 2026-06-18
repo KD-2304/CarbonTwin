@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { communityAPI } from '../api/axios';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { getScoreColor } from '../utils/scoreCalculator';
 import AnimatedNumber from '../components/ui/AnimatedNumber';
 import { Crown, Flame, TrendingDown, TrendingUp } from 'lucide-react';
@@ -12,11 +12,7 @@ export default function Leaderboard() {
   const [activeTab, setActiveTab] = useState('reducers');
   const { user } = useAuth();
 
-  useEffect(() => {
-    fetchLeaderboard();
-  }, []);
-
-  const fetchLeaderboard = async () => {
+  const fetchLeaderboard = useCallback(async () => {
     try {
       const { data } = await communityAPI.getLeaderboard();
       setData(data);
@@ -25,7 +21,11 @@ export default function Leaderboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    queueMicrotask(fetchLeaderboard);
+  }, [fetchLeaderboard]);
 
   const activeList = activeTab === 'reducers' ? data?.topReducers : data?.topStreaks;
 

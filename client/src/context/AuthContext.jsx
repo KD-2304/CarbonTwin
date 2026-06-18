@@ -1,24 +1,19 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { authAPI, userAPI } from '../api/axios';
-
-const AuthContext = createContext(null);
+import { AuthContext } from './authContextObject';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Silent auth check: only fetch profile if we have a local session indicator
-    const hasLocalSession = localStorage.getItem('ctc_user');
-    if (hasLocalSession) {
-      fetchProfile();
-    } else {
-      setLoading(false);
-    }
+  const logoutState = useCallback(() => {
+    localStorage.removeItem('ctc_user');
+    setToken(null);
+    setUser(null);
   }, []);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const { data } = await userAPI.getProfile();
       setUser(data);
@@ -29,7 +24,17 @@ export function AuthProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [logoutState]);
+
+  useEffect(() => {
+    const hasLocalSession = localStorage.getItem('ctc_user');
+    if (hasLocalSession) {
+      queueMicrotask(fetchProfile);
+      return;
+    }
+
+    queueMicrotask(() => setLoading(false));
+  }, [fetchProfile]);
 
   const login = async (email, password) => {
     const { data } = await authAPI.login({ email, password });
@@ -45,12 +50,6 @@ export function AuthProvider({ children }) {
     setToken('cookie_session');
     setUser(data.user);
     return data.user;
-  };
-
-  const logoutState = () => {
-    localStorage.removeItem('ctc_user');
-    setToken(null);
-    setUser(null);
   };
 
   const logout = async () => {
@@ -79,9 +78,3 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within AuthProvider');
-  return context;
-};

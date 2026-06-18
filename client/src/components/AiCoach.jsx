@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { aiAPI } from '../api/axios';
 import { Bot, Send, Sparkles } from 'lucide-react';
@@ -11,15 +11,7 @@ export default function AiCoach() {
   const [insightLoading, setInsightLoading] = useState(true);
   const chatEndRef = useRef(null);
 
-  useEffect(() => {
-    fetchInsight();
-  }, []);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const fetchInsight = async () => {
+  const fetchInsight = useCallback(async () => {
     try {
       const { data } = await aiAPI.getWeeklyInsight();
       setInsight(data);
@@ -33,7 +25,15 @@ export default function AiCoach() {
     } finally {
       setInsightLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    queueMicrotask(fetchInsight);
+  }, [fetchInsight]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const sendMessage = async (e) => {
     e.preventDefault();
@@ -47,7 +47,7 @@ export default function AiCoach() {
     try {
       const { data } = await aiAPI.chat(userMsg);
       setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-    } catch (error) {
+    } catch {
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: 'Sorry, I had trouble processing that. Please try again.'

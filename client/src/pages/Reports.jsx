@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { aiAPI } from '../api/axios';
 import { FileText, Sparkles, Lightbulb, Target, TrendingDown, TrendingUp } from 'lucide-react';
@@ -8,11 +8,7 @@ export default function Reports() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
-  useEffect(() => {
-    fetchReports();
-  }, []);
-
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     try {
       const { data } = await aiAPI.getReports();
       setReports(data);
@@ -21,7 +17,11 @@ export default function Reports() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    queueMicrotask(fetchReports);
+  }, [fetchReports]);
 
   const generateReport = async () => {
     setGenerating(true);

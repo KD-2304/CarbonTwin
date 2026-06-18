@@ -6,6 +6,14 @@ import * as THREE from 'three';
 // ─── TEXTURE GENERATOR AND CACHE ───────────────────────────────
 const emissiveTextureCache = {};
 
+function createSeededRandom(seed) {
+  let state = seed;
+  return () => {
+    state = (state * 16807) % 2147483647;
+    return (state - 1) / 2147483646;
+  };
+}
+
 function getEmissiveTexture(glowColor) {
   if (emissiveTextureCache[glowColor]) return emissiveTextureCache[glowColor];
 
@@ -180,7 +188,7 @@ function Building({ position, height, width, depth, score, index, onHover, onUnh
         document.body.style.cursor = 'pointer';
         onHover();
       }}
-      onPointerOut={(e) => {
+      onPointerOut={() => {
         setHovered(false);
         document.body.style.cursor = 'auto';
         onUnhover();
@@ -320,15 +328,16 @@ function SmogParticles({ score }) {
   }, [score]);
 
   const [positions, speeds, seeds] = useMemo(() => {
+    const rand = createSeededRandom(1200 + density);
     const pos = new Float32Array(density * 3);
     const spd = new Float32Array(density);
     const sd = new Float32Array(density);
     for (let i = 0; i < density; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 16;
-      pos[i * 3 + 1] = Math.random() * 4.5 + 0.5; // Range [0.5, 5.0]
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 16;
-      spd[i] = 0.05 + Math.random() * 0.1; // Speed multiplier
-      sd[i] = Math.random() * 100.0;       // Random seed for wiggle offset
+      pos[i * 3] = (rand() - 0.5) * 16;
+      pos[i * 3 + 1] = rand() * 4.5 + 0.5; // Range [0.5, 5.0]
+      pos[i * 3 + 2] = (rand() - 0.5) * 16;
+      spd[i] = 0.05 + rand() * 0.1; // Speed multiplier
+      sd[i] = rand() * 100.0;       // Random seed for wiggle offset
     }
     return [pos, spd, sd];
   }, [density]);
@@ -390,11 +399,7 @@ function CityScene({ communityScore = 3500, users = [] }) {
   const buildings = useMemo(() => {
     const activeUsers = users && users.length > 0 ? users : DEFAULT_USERS;
     const result = [];
-    const rng = (seed) => {
-      let s = seed;
-      return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
-    };
-    const rand = rng(555);
+    const rand = createSeededRandom(555);
 
     activeUsers.forEach((user, i) => {
       // Golden ratio spiral distribution for realistic deterministic city layout
@@ -432,11 +437,7 @@ function CityScene({ communityScore = 3500, users = [] }) {
   const trees = useMemo(() => {
     const treeCount = communityScore < 2000 ? 35 : communityScore < 3000 ? 20 : communityScore < 4000 ? 8 : 1;
     const result = [];
-    const rng = (seed) => {
-      let s = seed;
-      return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
-    };
-    const rand = rng(888);
+    const rand = createSeededRandom(888);
 
     for (let i = 0; i < treeCount; i++) {
       const angle = rand() * Math.PI * 2;

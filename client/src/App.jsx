@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { useEffect, lazy, Suspense } from 'react';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './context/useAuth';
 import { ScoreProvider } from './context/ScoreContext';
 import { registerNavigate } from './api/axios';
 import ProtectedRoute from './components/ui/ProtectedRoute';

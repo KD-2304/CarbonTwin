@@ -1,4 +1,4 @@
-import { useRef, useMemo, useState, useEffect } from 'react';
+import { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Text, Float, ContactShadows, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
@@ -11,6 +11,14 @@ const TIER_THEMES = {
   WARNING:  { label: 'WARNING',  color: '#f97316', sky: '#2d1a10', ground: '#1c1917', glow: '#ea580c', metalness: 0.4, roughness: 0.6, clearcoat: 0.1 },
   CRITICAL: { label: 'CRITICAL', color: '#ef4444', sky: '#1a0505', ground: '#111111', glow: '#dc2626', metalness: 0.1, roughness: 0.9, clearcoat: 0.0 }
 };
+
+function createSeededRandom(seed) {
+  let state = seed;
+  return () => {
+    state = (state * 16807) % 2147483647;
+    return (state - 1) / 2147483646;
+  };
+}
 
 function getTierTheme(score) {
   if (score < 2000) return TIER_THEMES.PRISTINE;
@@ -63,7 +71,6 @@ function CelestialBody({ score }) {
 
 // ─── CRACKED OR ORGANIC SURFACE TRAILS ──────────────────────────
 function GroundCracks({ score }) {
-  const theme = getTierTheme(score);
   const visible = score >= 3000;
   const intensity = Math.min(1, (score - 3000) / 1500);
 
@@ -71,21 +78,22 @@ function GroundCracks({ score }) {
     if (!visible) return [];
     const segments = [];
     const count = 12 + Math.floor(intensity * 10);
+    const rand = createSeededRandom(3000 + Math.round(score));
     
     for (let i = 0; i < count; i++) {
-      const angle = (i / count) * Math.PI * 2 + Math.random() * 0.4;
-      const radiusInner = 0.3 + Math.random() * 0.3;
-      const radiusOuter = 1.2 + Math.random() * 0.8 * intensity;
+      const angle = (i / count) * Math.PI * 2 + rand() * 0.4;
+      const radiusInner = 0.3 + rand() * 0.3;
+      const radiusOuter = 1.2 + rand() * 0.8 * intensity;
       
       const x1 = Math.cos(angle) * radiusInner;
       const z1 = Math.sin(angle) * radiusInner;
-      const x2 = Math.cos(angle + (Math.random() - 0.5) * 0.2) * radiusOuter;
-      const z2 = Math.sin(angle + (Math.random() - 0.5) * 0.2) * radiusOuter;
+      const x2 = Math.cos(angle + (rand() - 0.5) * 0.2) * radiusOuter;
+      const z2 = Math.sin(angle + (rand() - 0.5) * 0.2) * radiusOuter;
       
       segments.push(new THREE.Vector3(x1, 0.002, z1), new THREE.Vector3(x2, 0.002, z2));
     }
     return segments;
-  }, [visible, intensity]);
+  }, [visible, intensity, score]);
 
   if (!visible || crackSegments.length === 0) return null;
 
@@ -163,21 +171,24 @@ function Smokestack({ position }) {
   const smokeRef = useRef();
   const particleCount = 30;
 
-  const [positions, velocities, ages] = useMemo(() => {
+  const [positions, velocities] = useMemo(() => {
+    const rand = createSeededRandom(
+      Math.round((position[0] + 10) * 1000)
+      + Math.round((position[1] + 10) * 100)
+      + Math.round((position[2] + 10) * 10)
+    );
     const pos = new Float32Array(particleCount * 3);
     const vel = new Float32Array(particleCount * 3);
-    const age = new Float32Array(particleCount);
     for (let i = 0; i < particleCount; i++) {
-      age[i] = Math.random() * 2;
-      pos[i * 3] = position[0] + (Math.random() - 0.5) * 0.02;
-      pos[i * 3 + 1] = position[1] + 0.5 + (Math.random() * 0.5);
-      pos[i * 3 + 2] = position[2] + (Math.random() - 0.5) * 0.02;
+      pos[i * 3] = position[0] + (rand() - 0.5) * 0.02;
+      pos[i * 3 + 1] = position[1] + 0.5 + (rand() * 0.5);
+      pos[i * 3 + 2] = position[2] + (rand() - 0.5) * 0.02;
       
-      vel[i * 3] = (Math.random() - 0.5) * 0.01;
-      vel[i * 3 + 1] = 0.015 + Math.random() * 0.015;
-      vel[i * 3 + 2] = (Math.random() - 0.5) * 0.01;
+      vel[i * 3] = (rand() - 0.5) * 0.01;
+      vel[i * 3 + 1] = 0.015 + rand() * 0.015;
+      vel[i * 3 + 2] = (rand() - 0.5) * 0.01;
     }
-    return [pos, vel, age];
+    return [pos, vel];
   }, [particleCount, position]);
 
   useFrame(() => {

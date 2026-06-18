@@ -1,9 +1,8 @@
-import { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { userAPI, actionsAPI, quizAPI } from '../api/axios';
-import { useAuth } from './AuthContext';
+import { useAuth } from './useAuth';
+import { ScoreContext } from './scoreContextObject';
 import { ACTION_OPTIONS as STATIC_ACTION_OPTIONS } from '../utils/emissionFactors';
-
-const ScoreContext = createContext(null);
 
 export function ScoreProvider({ children }) {
   const { refreshUser } = useAuth();
@@ -25,7 +24,7 @@ export function ScoreProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    fetchEmissionFactors();
+    queueMicrotask(fetchEmissionFactors);
   }, [fetchEmissionFactors]);
 
   const actionOptions = useMemo(() => {
@@ -62,7 +61,7 @@ export function ScoreProvider({ children }) {
     return data?.profile;
   }, [fetchDashboardData]);
 
-  const fetchHistory = useCallback(async (days = 7) => {
+  const fetchHistory = useCallback(async () => {
     const data = await fetchDashboardData();
     return data?.history;
   }, [fetchDashboardData]);
@@ -113,9 +112,3 @@ export function ScoreProvider({ children }) {
     </ScoreContext.Provider>
   );
 }
-
-export const useScore = () => {
-  const context = useContext(ScoreContext);
-  if (!context) throw new Error('useScore must be used within ScoreProvider');
-  return context;
-};

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useScore } from '../context/ScoreContext';
+import { useScore } from '../context/useScore';
 import { Car, UtensilsCrossed, Home, ShoppingBag } from 'lucide-react';
 
 const categoryLabels = {
@@ -45,7 +45,7 @@ export default function ActionLogger() {
   };
 
   const handleKeyDown = (e, index) => {
-    let nextIndex = index;
+    let nextIndex;
     if (e.key === 'ArrowRight') {
       nextIndex = (index + 1) % categoryKeys.length;
     } else if (e.key === 'ArrowLeft') {

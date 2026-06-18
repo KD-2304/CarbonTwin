@@ -33,13 +33,12 @@ const mockUser = {
   ]
 };
 
-// Mock AuthContext
-vi.mock('../context/AuthContext.jsx', () => ({
+// Mock auth hook
+vi.mock('../context/useAuth.js', () => ({
   useAuth: () => ({
     user: mockUser,
     refreshUser: vi.fn(),
   }),
-  AuthProvider: ({ children }) => <>{children}</>,
 }));
 
 // Mock ScoreContext
@@ -49,7 +48,7 @@ const mockFetchDashboardData = vi.fn().mockResolvedValue({
   summary: { totalActions: 5, totalDelta: -2.5, byCategory: {} }
 });
 
-vi.mock('../context/ScoreContext.jsx', () => ({
+vi.mock('../context/useScore.js', () => ({
   useScore: () => ({
     scoreData: mockUser,
     scoreAnimating: false,
@@ -63,7 +62,6 @@ vi.mock('../context/ScoreContext.jsx', () => ({
     lastDelta: 0,
     actionHistory: []
   }),
-  ScoreProvider: ({ children }) => <>{children}</>,
 }));
 
 // Mock Three/Canvas components

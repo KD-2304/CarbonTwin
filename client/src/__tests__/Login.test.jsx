@@ -1,18 +1,17 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Login from '../pages/Login.jsx';
 
-// Mock AuthContext
+// Mock auth hook
 const mockLogin = vi.fn();
 
-vi.mock('../context/AuthContext.jsx', () => ({
+vi.mock('../context/useAuth.js', () => ({
   useAuth: () => ({
     user: null,
     login: mockLogin,
     loading: false,
   }),
-  AuthProvider: ({ children }) => <>{children}</>,
 }));
 
 

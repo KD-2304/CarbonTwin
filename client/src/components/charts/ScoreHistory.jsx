@@ -1,5 +1,17 @@
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 
+function HistoryTooltip({ active, payload, label }) {
+  if (active && payload?.length) {
+    return (
+      <div className="glass-card px-3 py-2 text-sm">
+        <p className="text-sand-500">{label}</p>
+        <p className="text-sand-100 font-semibold">{payload[0].value.toLocaleString()} kg CO2/yr</p>
+      </div>
+    );
+  }
+  return null;
+}
+
 export default function ScoreHistory({ snapshots = [] }) {
   const data = snapshots.map(s => ({
     date: new Date(s.date).toLocaleDateString('en', { month: 'short', day: 'numeric' }),
@@ -9,22 +21,10 @@ export default function ScoreHistory({ snapshots = [] }) {
   if (data.length < 2) {
     return (
       <div className="flex items-center justify-center h-[200px] text-sand-500 text-sm">
-        Not enough data yet — keep logging!
+        Not enough data yet - keep logging!
       </div>
     );
   }
-
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload?.length) {
-      return (
-        <div className="glass-card px-3 py-2 text-sm">
-          <p className="text-sand-500">{label}</p>
-          <p className="text-sand-100 font-semibold">{payload[0].value.toLocaleString()} kg CO₂/yr</p>
-        </div>
-      );
-    }
-    return null;
-  };
 
   return (
     <ResponsiveContainer width="100%" height={200}>
@@ -49,7 +49,7 @@ export default function ScoreHistory({ snapshots = [] }) {
           width={45}
           tickFormatter={v => `${(v / 1000).toFixed(1)}k`}
         />
-        <Tooltip content={<CustomTooltip />} />
+        <Tooltip content={<HistoryTooltip />} />
         <Area
           type="monotone"
           dataKey="score"

@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 import { LayoutDashboard, Building2, Trophy, FlaskConical, FileBarChart, LogOut } from 'lucide-react';
 
 const navItems = [

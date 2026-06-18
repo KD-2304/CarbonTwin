@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import InteractiveEcoGlobe from "../components/landing/InteractiveEcoGlobe";
 import { ArrowRight, Sparkles, Leaf, Building2, FlaskConical, Bot, ChevronRight } from "lucide-react";
 

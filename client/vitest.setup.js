@@ -7,18 +7,18 @@ vi.mock('framer-motion', () => {
   const motionMock = new Proxy({}, {
     get: (target, prop) => {
       return ({ children, ...props }) => {
-        const {
-          initial,
-          animate,
-          exit,
-          transition,
-          whileHover,
-          whileTap,
-          whileInView,
-          viewport,
-          variants,
-          ...domProps
-        } = props;
+        const domProps = { ...props };
+        [
+          'initial',
+          'animate',
+          'exit',
+          'transition',
+          'whileHover',
+          'whileTap',
+          'whileInView',
+          'viewport',
+          'variants',
+        ].forEach(key => delete domProps[key]);
         const Component = prop;
         return React.createElement(Component, domProps, children);
       };

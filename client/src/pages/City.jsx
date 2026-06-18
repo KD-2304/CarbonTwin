@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import CarbonCity from '../components/city/CarbonCity';
 import AnimatedNumber from '../components/ui/AnimatedNumber';
 import { communityAPI } from '../api/axios';
-import { Users, Zap, TreePine, Activity } from 'lucide-react';
+import { Users, TreePine, Activity } from 'lucide-react';
 
 const cityStates = [
   { range: '< 2,000 kg', label: 'Pristine', desc: 'Blue skies, dense canopy, clean buildings', accent: 'sage' },
@@ -23,11 +23,7 @@ export default function City() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const { data } = await communityAPI.getStats();
       setStats(data);
@@ -36,7 +32,11 @@ export default function City() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    queueMicrotask(fetchStats);
+  }, [fetchStats]);
 
   const communityScore = stats?.communityAverage || 3500;
   const cityHealth = stats?.cityHealth || 50;

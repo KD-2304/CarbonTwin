@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import CarbonTwin from '../components/twin/CarbonTwin';
 import AnimatedNumber from '../components/ui/AnimatedNumber';
 import { getScoreColor, formatNumber } from '../utils/scoreCalculator';
@@ -28,7 +28,6 @@ export default function Simulator() {
   const [activeToggles, setActiveToggles] = useState({});
 
   const [simulatedData, setSimulatedData] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const quizAnswers = useMemo(() => user?.quizAnswers || {
     transport: { mode: 'car_petrol', weeklyKm: 80 },
@@ -46,7 +45,6 @@ export default function Simulator() {
   useEffect(() => {
     let active = true;
     const fetchSimulation = async () => {
-      setLoading(true);
       try {
         const { data } = await simulatorAPI.calculate({
           currentAnswers: quizAnswers,
@@ -57,8 +55,6 @@ export default function Simulator() {
         }
       } catch (err) {
         console.error('Simulator calculation failed:', err);
-      } finally {
-        if (active) setLoading(false);
       }
     };
 

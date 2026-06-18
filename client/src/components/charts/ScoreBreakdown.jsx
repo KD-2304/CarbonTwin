@@ -9,6 +9,20 @@ const LABELS = {
   flights: 'Flights'
 };
 
+function BreakdownTooltip({ active, payload, total }) {
+  if (active && payload?.length) {
+    const item = payload[0];
+    const pct = ((item.value / total) * 100).toFixed(1);
+    return (
+      <div className="glass-card px-3 py-2 text-sm">
+        <p className="text-sand-100 font-semibold">{item.name}</p>
+        <p className="text-sand-400">{item.value.toLocaleString()} kg CO2/yr ({pct}%)</p>
+      </div>
+    );
+  }
+  return null;
+}
+
 export default function ScoreBreakdown({ breakdown = {} }) {
   const data = Object.entries(breakdown)
     .filter(([, value]) => value > 0)
@@ -27,20 +41,6 @@ export default function ScoreBreakdown({ breakdown = {} }) {
 
   const total = data.reduce((sum, d) => sum + d.value, 0);
 
-  const CustomTooltip = ({ active, payload }) => {
-    if (active && payload?.length) {
-      const item = payload[0];
-      const pct = ((item.value / total) * 100).toFixed(1);
-      return (
-        <div className="glass-card px-3 py-2 text-sm">
-          <p className="text-sand-100 font-semibold">{item.name}</p>
-          <p className="text-sand-400">{item.value.toLocaleString()} kg CO₂/yr ({pct}%)</p>
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
     <ResponsiveContainer width="100%" height={250}>
       <PieChart>
@@ -58,7 +58,7 @@ export default function ScoreBreakdown({ breakdown = {} }) {
             <Cell key={index} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>
-        <Tooltip content={<CustomTooltip />} />
+        <Tooltip content={<BreakdownTooltip total={total} />} />
         <Legend
           iconType="circle"
           iconSize={8}

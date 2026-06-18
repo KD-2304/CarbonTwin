@@ -3,6 +3,14 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 
+function createSeededRandom(seed) {
+  let state = seed;
+  return () => {
+    state = (state * 16807) % 2147483647;
+    return (state - 1) / 2147483646;
+  };
+}
+
 // ─── TREE ON GLOBE ──────────────────────────────────────────────
 function GlobeTree({ rotation, scale }) {
   return (
@@ -64,7 +72,7 @@ function GlobeScene({ value = 3500 }) {
   }, [value]);
 
   // Interpolate globe colors
-  const { planetColor, emissiveColor, skyBg } = useMemo(() => {
+  const { planetColor, emissiveColor } = useMemo(() => {
     // 0: Clean (greenish blue), 0.5: Moderate (dusty orange-green), 1.0: Polluted (charcoal red)
     const cClean = new THREE.Color('#0f2d4a');
     const cMod = new THREE.Color('#383528');
@@ -117,11 +125,12 @@ function GlobeScene({ value = 3500 }) {
   // Set particle positions
   const { positions, pColor } = useMemo(() => {
     const count = 120;
+    const rand = createSeededRandom(2000 + Math.round(factor * 100));
     const pos = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos((Math.random() * 2) - 1);
-      const dist = 1.8 + Math.random() * 1.2; // orbit distance
+      const theta = rand() * Math.PI * 2;
+      const phi = Math.acos((rand() * 2) - 1);
+      const dist = 1.8 + rand() * 1.2; // orbit distance
       pos[i * 3] = dist * Math.sin(phi) * Math.cos(theta);
       pos[i * 3 + 1] = dist * Math.sin(phi) * Math.sin(theta);
       pos[i * 3 + 2] = dist * Math.cos(phi);
