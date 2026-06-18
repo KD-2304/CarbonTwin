@@ -48,11 +48,13 @@ export default function ScoreBreakdown({ breakdown = {} }) {
           data={data}
           cx="50%"
           cy="50%"
-          innerRadius={55}
-          outerRadius={85}
+          innerRadius={40}
+          outerRadius={65}
           paddingAngle={3}
           dataKey="value"
           strokeWidth={0}
+          label={({ name, percent }) => percent > 0.05 ? `${name} (${(percent * 100).toFixed(0)}%)` : ''}
+          labelLine={{ stroke: '#4b5563', strokeWidth: 1 }}
         >
           {data.map((_, index) => (
             <Cell key={index} fill={COLORS[index % COLORS.length]} />

@@ -10,6 +10,16 @@ describe('Quiz and Action Validation API Tests', () => {
   let userToken = '';
   let userEmail = '';
   let userId = '';
+  let csrfToken = '';
+  let cookies = [];
+
+  const postRequest = (url) => {
+    return request(app)
+      .post(url)
+      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', cookies)
+      .set('x-ctc-request', csrfToken);
+  };
 
   beforeAll(async () => {
     userEmail = testEmail();
@@ -17,9 +27,11 @@ describe('Quiz and Action Validation API Tests', () => {
       .post('/api/auth/register')
       .send({ name: 'Validation Test User', email: userEmail, password: 'password123' });
     
-    const cookieHeader = res.headers['set-cookie']?.[0];
-    const match = cookieHeader ? cookieHeader.match(/ctc_token=([^;]+)/) : null;
-    userToken = match ? match[1] : '';
+    csrfToken = res.body.csrfToken;
+    cookies = res.headers['set-cookie'] || [];
+    
+    const tokenMatch = cookies.join(';').match(/ctc_token=([^;]+)/);
+    userToken = tokenMatch ? tokenMatch[1] : '';
     userId = res.body.user.id;
   });
 
@@ -30,9 +42,7 @@ describe('Quiz and Action Validation API Tests', () => {
 
   describe('POST /api/quiz/submit validations', () => {
     it('should reject quiz with missing root fields', async () => {
-      const res = await request(app)
-        .post('/api/quiz/submit')
-        .set('Authorization', `Bearer ${userToken}`)
+      const res = await postRequest('/api/quiz/submit')
         .send({ diet: 'vegan' });
 
       expect(res.status).toBe(400);
@@ -40,9 +50,7 @@ describe('Quiz and Action Validation API Tests', () => {
     });
 
     it('should reject quiz with invalid diet enum', async () => {
-      const res = await request(app)
-        .post('/api/quiz/submit')
-        .set('Authorization', `Bearer ${userToken}`)
+      const res = await postRequest('/api/quiz/submit')
         .send({
           transport: { mode: 'bike', weeklyKm: 10 },
           diet: 'carnivore_extra',
@@ -56,9 +64,7 @@ describe('Quiz and Action Validation API Tests', () => {
     });
 
     it('should reject quiz with negative weeklyKm distance', async () => {
-      const res = await request(app)
-        .post('/api/quiz/submit')
-        .set('Authorization', `Bearer ${userToken}`)
+      const res = await postRequest('/api/quiz/submit')
         .send({
           transport: { mode: 'car_petrol', weeklyKm: -5 },
           diet: 'omnivore',
@@ -72,9 +78,7 @@ describe('Quiz and Action Validation API Tests', () => {
     });
 
     it('should reject quiz with abnormally high energy usage', async () => {
-      const res = await request(app)
-        .post('/api/quiz/submit')
-        .set('Authorization', `Bearer ${userToken}`)
+      const res = await postRequest('/api/quiz/submit')
         .send({
           transport: { mode: 'car_petrol', weeklyKm: 100 },
           diet: 'omnivore',
@@ -88,9 +92,7 @@ describe('Quiz and Action Validation API Tests', () => {
     });
 
     it('should reject quiz with non-integer flights count', async () => {
-      const res = await request(app)
-        .post('/api/quiz/submit')
-        .set('Authorization', `Bearer ${userToken}`)
+      const res = await postRequest('/api/quiz/submit')
         .send({
           transport: { mode: 'car_petrol', weeklyKm: 100 },
           diet: 'omnivore',
@@ -104,9 +106,7 @@ describe('Quiz and Action Validation API Tests', () => {
     });
 
     it('should submit successfully with correct values', async () => {
-      const res = await request(app)
-        .post('/api/quiz/submit')
-        .set('Authorization', `Bearer ${userToken}`)
+      const res = await postRequest('/api/quiz/submit')
         .send({
           transport: { mode: 'car_petrol', weeklyKm: 100 },
           diet: 'omnivore',
@@ -124,9 +124,7 @@ describe('Quiz and Action Validation API Tests', () => {
 
   describe('POST /api/actions/log validations', () => {
     it('should reject action with missing fields', async () => {
-      const res = await request(app)
-        .post('/api/actions/log')
-        .set('Authorization', `Bearer ${userToken}`)
+      const res = await postRequest('/api/actions/log')
         .send({ action: 'vegan_meal' });
 
       expect(res.status).toBe(400);
@@ -134,9 +132,7 @@ describe('Quiz and Action Validation API Tests', () => {
     });
 
     it('should reject action with invalid category', async () => {
-      const res = await request(app)
-        .post('/api/actions/log')
-        .set('Authorization', `Bearer ${userToken}`)
+      const res = await postRequest('/api/actions/log')
         .send({ category: 'invalid_cat', action: 'vegan_meal' });
 
       expect(res.status).toBe(400);
@@ -144,9 +140,7 @@ describe('Quiz and Action Validation API Tests', () => {
     });
 
     it('should reject action mismatched with its category', async () => {
-      const res = await request(app)
-        .post('/api/actions/log')
-        .set('Authorization', `Bearer ${userToken}`)
+      const res = await postRequest('/api/actions/log')
         .send({ category: 'home', action: 'vegan_meal' });
 
       expect(res.status).toBe(400);
@@ -154,9 +148,7 @@ describe('Quiz and Action Validation API Tests', () => {
     });
 
     it('should reject transport action with invalid distance', async () => {
-      const res = await request(app)
-        .post('/api/actions/log')
-        .set('Authorization', `Bearer ${userToken}`)
+      const res = await postRequest('/api/actions/log')
         .send({ category: 'transport', action: 'took_car', km: -10 });
 
       expect(res.status).toBe(400);
@@ -164,9 +156,7 @@ describe('Quiz and Action Validation API Tests', () => {
     });
 
     it('should log valid action successfully', async () => {
-      const res = await request(app)
-        .post('/api/actions/log')
-        .set('Authorization', `Bearer ${userToken}`)
+      const res = await postRequest('/api/actions/log')
         .send({ category: 'meal', action: 'vegan_meal', notes: 'Very tasty dinner!' });
 
       expect(res.status).toBe(200);

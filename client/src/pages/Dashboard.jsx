@@ -256,7 +256,7 @@ export default function Dashboard() {
               <div>
                 <p className="section-title">Carbon Twin</p>
                 <p className="text-sm text-sand-500">
-                  Interactive reflection of your current footprint.
+                  Interactive reflection of your current footprint. <span className="text-[11px] text-teal-400 font-medium block md:inline md:ml-2">💡 Drag to orbit • Scroll to zoom • Right-click + drag to pan</span>
                 </p>
               </div>
               <span className="rounded-lg border border-teal-400/15 bg-teal-400/6 px-2.5 py-1 text-[10px] font-bold text-teal-400 uppercase tracking-wider flex items-center gap-1.5">

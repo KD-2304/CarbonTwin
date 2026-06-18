@@ -74,9 +74,7 @@ app.use(express.json({ limit: '10kb' }));
 // Anti-CSRF validation middleware for mutating requests
 app.use((req, res, next) => {
   if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
-    if (process.env.NODE_ENV === 'test') {
-      return next();
-    }
+
 
     // Exclude login and register routes from CSRF checks
     if (['/api/auth/login', '/api/auth/register'].includes(req.path)) {

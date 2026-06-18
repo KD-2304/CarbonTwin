@@ -40,6 +40,30 @@ async function getUserDataForAI(userId) {
   };
 }
 
+// Helper: compile report in the background to avoid blocking route execution
+async function compileReportInBackground(reportId, userId, weekActions, totalDelta) {
+  const startTime = Date.now();
+  try {
+    const userData = await getUserDataForAI(userId);
+    const reportData = await generateWeeklyReport(userData, weekActions);
+    
+    await WeeklyReport.findByIdAndUpdate(reportId, {
+      summary: reportData.summary || `Logged ${weekActions.length} actions this week.`,
+      insight: reportData.insight || '',
+      goal: reportData.goal || '',
+    });
+    const duration = Date.now() - startTime;
+    console.log(`⚡ [Weekly Report AI] Compiled in ${duration}ms for user ${userId}`);
+  } catch (err) {
+    console.error('Background weekly report AI generation failed:', err);
+    await WeeklyReport.findByIdAndUpdate(reportId, {
+      summary: `This week you logged ${weekActions.length} actions with a net impact of ${totalDelta.toFixed(1)} kg CO₂.`,
+      insight: 'AI insight currently unavailable.',
+      goal: 'Keep logging your daily actions to track progress.'
+    });
+  }
+}
+
 // POST /api/ai/weekly-insight
 router.post('/weekly-insight', auth, async (req, res) => {
   try {
@@ -148,24 +172,8 @@ router.post('/weekly-report', auth, async (req, res) => {
     await report.save();
 
     // Trigger AI compilation in the background asynchronously
-    setImmediate(async () => {
-      try {
-        const userData = await getUserDataForAI(req.userId);
-        const reportData = await generateWeeklyReport(userData, weekActions);
-        
-        await WeeklyReport.findByIdAndUpdate(report._id, {
-          summary: reportData.summary || `Logged ${weekActions.length} actions this week.`,
-          insight: reportData.insight || '',
-          goal: reportData.goal || '',
-        });
-      } catch (err) {
-        console.error('Background weekly report AI generation failed:', err);
-        await WeeklyReport.findByIdAndUpdate(report._id, {
-          summary: `This week you logged ${weekActions.length} actions with a net impact of ${totalDelta.toFixed(1)} kg CO₂.`,
-          insight: 'AI insight currently unavailable.',
-          goal: 'Keep logging your daily actions to track progress.'
-        });
-      }
+    setImmediate(() => {
+      compileReportInBackground(report._id, req.userId, weekActions, totalDelta);
     });
 
     res.status(202).json(report);

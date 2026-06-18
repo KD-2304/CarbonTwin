@@ -9,6 +9,8 @@ describe('Community, AI, and Simulator API Tests', () => {
   let userToken = '';
   let userEmail = '';
   let userId = '';
+  let csrfToken = '';
+  let cookies = [];
 
   beforeAll(async () => {
     userEmail = testEmail();
@@ -16,15 +18,19 @@ describe('Community, AI, and Simulator API Tests', () => {
       .post('/api/auth/register')
       .send({ name: 'Community Test User', email: userEmail, password: 'password123' });
     
-    const cookieHeader = res.headers['set-cookie']?.[0];
-    const match = cookieHeader ? cookieHeader.match(/ctc_token=([^;]+)/) : null;
-    userToken = match ? match[1] : '';
+    csrfToken = res.body.csrfToken;
+    cookies = res.headers['set-cookie'] || [];
+    
+    const tokenMatch = cookies.join(';').match(/ctc_token=([^;]+)/);
+    userToken = tokenMatch ? tokenMatch[1] : '';
     userId = res.body.user.id;
 
     // Complete onboarding so the user appears in stats/leaderboard
     await request(app)
       .post('/api/quiz/submit')
       .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', cookies)
+      .set('x-ctc-request', csrfToken)
       .send({
         transport: { mode: 'car_petrol', weeklyKm: 100 },
         diet: 'omnivore',
@@ -73,7 +79,9 @@ describe('Community, AI, and Simulator API Tests', () => {
     it('should retrieve weekly insight object', async () => {
       const res = await request(app)
         .post('/api/ai/weekly-insight')
-        .set('Authorization', `Bearer ${userToken}`);
+        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', cookies)
+        .set('x-ctc-request', csrfToken);
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('insight');
@@ -87,6 +95,8 @@ describe('Community, AI, and Simulator API Tests', () => {
       const res = await request(app)
         .post('/api/ai/chat')
         .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', cookies)
+        .set('x-ctc-request', csrfToken)
         .send({ message: '' });
 
       expect(res.status).toBe(400);
@@ -98,6 +108,8 @@ describe('Community, AI, and Simulator API Tests', () => {
       const res = await request(app)
         .post('/api/ai/chat')
         .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', cookies)
+        .set('x-ctc-request', csrfToken)
         .send({ message: longMessage });
 
       expect(res.status).toBe(400);
@@ -108,6 +120,8 @@ describe('Community, AI, and Simulator API Tests', () => {
       const res = await request(app)
         .post('/api/ai/chat')
         .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', cookies)
+        .set('x-ctc-request', csrfToken)
         .send({ message: 'How do I save carbon?' });
 
       expect(res.status).toBe(200);
@@ -119,6 +133,8 @@ describe('Community, AI, and Simulator API Tests', () => {
     it('should reject unauthenticated request', async () => {
       const res = await request(app)
         .post('/api/simulator/calculate')
+        .set('Cookie', cookies.filter(c => !c.startsWith('ctc_token=')))
+        .set('x-ctc-request', csrfToken)
         .send({
           currentAnswers: {
             transport: { mode: 'car_petrol', weeklyKm: 100 },
@@ -137,6 +153,8 @@ describe('Community, AI, and Simulator API Tests', () => {
       const res = await request(app)
         .post('/api/simulator/calculate')
         .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', cookies)
+        .set('x-ctc-request', csrfToken)
         .send({
           currentAnswers: {
             transport: { mode: 'car_petrol', weeklyKm: 100 },

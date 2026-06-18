@@ -38,14 +38,18 @@ describe('Centralized Error Handler', () => {
       .post('/api/auth/register')
       .send({ name: 'Error Test User', email, password: 'password1234' });
 
-    const cookieHeader = registerRes.headers['set-cookie']?.[0];
-    const match = cookieHeader ? cookieHeader.match(/ctc_token=([^;]+)/) : null;
-    const token = match ? match[1] : '';
+    const csrfToken = registerRes.body.csrfToken;
+    const cookies = registerRes.headers['set-cookie'] || [];
+
+    const tokenMatch = cookies.join(';').match(/ctc_token=([^;]+)/);
+    const token = tokenMatch ? tokenMatch[1] : '';
 
     // Send an invalid action log — should be caught by Zod validation
     const res = await request(app)
       .post('/api/actions/log')
       .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', cookies)
+      .set('x-ctc-request', csrfToken)
       .send({ category: 'INVALID_CATEGORY', action: 'nothing' });
 
     expect(res.status).toBe(400);

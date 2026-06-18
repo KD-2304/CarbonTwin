@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import App from '../App.jsx';
 
 // Mock Three.js components to avoid canvas issues in JSDOM
@@ -35,13 +35,19 @@ describe('App Component', () => {
     localStorage.clear();
   });
 
-  it('renders without crashing', () => {
+  it('renders without crashing', async () => {
     const { container } = render(<App />);
+    await waitFor(() => {
+      expect(screen.queryByText(/loading carbon twin/i)).toBeNull();
+    });
     expect(container).toBeTruthy();
   });
 
-  it('redirects to login when not authenticated', () => {
+  it('redirects to login when not authenticated', async () => {
     render(<App />);
+    await waitFor(() => {
+      expect(screen.queryByText(/loading carbon twin/i)).toBeNull();
+    });
 
     // When no token exists, user should see the login page
     // The app redirects to /login for unauthenticated users
@@ -49,8 +55,11 @@ describe('App Component', () => {
     expect(loginElements.length).toBeGreaterThan(0);
   });
 
-  it('does not show sidebar or bottom nav when not authenticated', () => {
+  it('does not show sidebar or bottom nav when not authenticated', async () => {
     render(<App />);
+    await waitFor(() => {
+      expect(screen.queryByText(/loading carbon twin/i)).toBeNull();
+    });
 
     // Navigation sidebar element should not be present for unauthenticated users
     expect(document.querySelector('aside')).toBeNull();

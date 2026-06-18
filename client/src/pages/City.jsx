@@ -76,7 +76,9 @@ export default function City() {
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-sand-100/5 px-5 py-4">
             <div>
               <p className="section-title">Live City Simulation</p>
-              <p className="text-sm text-sand-500">Buildings, air quality, and canopy react to community emissions.</p>
+              <p className="text-sm text-sand-500">
+                Buildings, air quality, and canopy react to community emissions. <span className="text-[11px] text-sage-400 font-medium block md:inline md:ml-2">💡 Drag to orbit • Scroll to zoom • Right-click + drag to pan</span>
+              </p>
             </div>
             <span className="rounded-lg border border-sage-400/15 bg-sage-400/6 px-2.5 py-1 text-[10px] font-bold text-sage-400 uppercase tracking-wider flex items-center gap-1.5">
               <Activity size={10} /> {cityHealth}/100 health
