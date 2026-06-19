@@ -4,6 +4,8 @@ const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 const { z } = require('zod');
 const User = require('../models/User');
+const BlacklistedToken = require('../models/BlacklistedToken');
+const { parseCookies } = require('../utils/cookieHelper');
 
 const router = express.Router();
 
@@ -187,18 +189,49 @@ router.post('/login', loginLimiter, validateLoginInput, async (req, res) => {
 });
 
 // POST /api/auth/logout
-router.post('/logout', (req, res) => {
-  res.clearCookie('ctc_token', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
-  });
-  res.clearCookie('ctc_csrf_token', {
-    httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
-  });
-  res.json({ message: 'Logged out successfully' });
+router.post('/logout', async (req, res) => {
+  try {
+    let token = null;
+
+    // 1. Try reading from cookie
+    if (req.headers.cookie) {
+      const cookies = parseCookies(req.headers.cookie);
+      token = cookies.ctc_token;
+    }
+
+    // 2. Fallback to Authorization header
+    if (!token) {
+      const authHeader = req.header('Authorization');
+      if (authHeader) {
+        token = authHeader.replace('Bearer ', '');
+      }
+    }
+
+    // If we have a token, add it to the blacklist
+    if (token) {
+      // Use findOneAndUpdate with upsert to prevent unique key constraint errors on double logout
+      await BlacklistedToken.findOneAndUpdate(
+        { token },
+        { token },
+        { upsert: true, new: true }
+      );
+    }
+
+    res.clearCookie('ctc_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
+    });
+    res.clearCookie('ctc_csrf_token', {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
+    });
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ error: 'Server error during logout' });
+  }
 });
 
 module.exports = router;

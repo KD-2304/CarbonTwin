@@ -1,20 +1,14 @@
 const jwt = require('jsonwebtoken');
+const { parseCookies } = require('../utils/cookieHelper');
+const BlacklistedToken = require('../models/BlacklistedToken');
 
-const auth = (req, res, next) => {
+const auth = async (req, res, next) => {
   try {
     let token = null;
 
     // 1. Try reading from cookie
     if (req.headers.cookie) {
-      const cookies = req.headers.cookie.split(';').reduce((acc, c) => {
-        const eqIdx = c.indexOf('=');
-        if (eqIdx !== -1) {
-          const key = c.slice(0, eqIdx).trim();
-          const val = c.slice(eqIdx + 1).trim();
-          if (key) acc[key] = decodeURIComponent(val);
-        }
-        return acc;
-      }, {});
+      const cookies = parseCookies(req.headers.cookie);
       token = cookies.ctc_token;
     }
 
@@ -28,6 +22,12 @@ const auth = (req, res, next) => {
 
     if (!token) {
       return res.status(401).json({ error: 'No authorization token provided' });
+    }
+
+    // Check if token is blacklisted (revoked session)
+    const isBlacklisted = await BlacklistedToken.findOne({ token });
+    if (isBlacklisted) {
+      return res.status(401).json({ error: 'Session has been revoked' });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);

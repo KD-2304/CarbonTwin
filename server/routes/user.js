@@ -5,6 +5,7 @@ const auth = require('../middleware/auth');
 const User = require('../models/User');
 const { getStreakStatus } = require('../services/scoreService');
 const { checkAndResetWeeklyScore } = require('../utils/dateHelpers');
+const { parseCookies } = require('../utils/cookieHelper');
 
 const router = express.Router();
 
@@ -21,15 +22,7 @@ router.get('/profile', auth, async (req, res) => {
 
     let csrfToken = null;
     if (req.headers.cookie) {
-      const cookies = req.headers.cookie.split(';').reduce((acc, c) => {
-        const eqIdx = c.indexOf('=');
-        if (eqIdx !== -1) {
-          const key = c.slice(0, eqIdx).trim();
-          const val = c.slice(eqIdx + 1).trim();
-          if (key) acc[key] = decodeURIComponent(val);
-        }
-        return acc;
-      }, {});
+      const cookies = parseCookies(req.headers.cookie);
       csrfToken = cookies.ctc_csrf_token;
     }
 
@@ -195,15 +188,7 @@ router.get('/dashboard-summary', auth, async (req, res) => {
 
     let csrfToken = null;
     if (req.headers.cookie) {
-      const cookies = req.headers.cookie.split(';').reduce((acc, c) => {
-        const eqIdx = c.indexOf('=');
-        if (eqIdx !== -1) {
-          const key = c.slice(0, eqIdx).trim();
-          const val = c.slice(eqIdx + 1).trim();
-          if (key) acc[key] = decodeURIComponent(val);
-        }
-        return acc;
-      }, {});
+      const cookies = parseCookies(req.headers.cookie);
       csrfToken = cookies.ctc_csrf_token;
     }
 

@@ -5,6 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
+const { parseCookies } = require('./utils/cookieHelper');
 
 // Verify critical environment variables at startup
 const REQUIRED_ENV = ['JWT_SECRET', 'MONGO_URI', 'GEMINI_API_KEY'];
@@ -83,15 +84,7 @@ app.use((req, res, next) => {
 
     let csrfCookie = null;
     if (req.headers.cookie) {
-      const cookies = req.headers.cookie.split(';').reduce((acc, c) => {
-        const eqIdx = c.indexOf('=');
-        if (eqIdx !== -1) {
-          const key = c.slice(0, eqIdx).trim();
-          const val = c.slice(eqIdx + 1).trim();
-          if (key) acc[key] = decodeURIComponent(val);
-        }
-        return acc;
-      }, {});
+      const cookies = parseCookies(req.headers.cookie);
       csrfCookie = cookies.ctc_csrf_token;
     }
 
