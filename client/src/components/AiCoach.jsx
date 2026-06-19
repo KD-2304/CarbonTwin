@@ -28,7 +28,7 @@ export default function AiCoach() {
   }, []);
 
   useEffect(() => {
-    queueMicrotask(fetchInsight);
+    fetchInsight();
   }, [fetchInsight]);
 
   useEffect(() => {

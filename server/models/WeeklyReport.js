@@ -41,6 +41,6 @@ const weeklyReportSchema = new mongoose.Schema({
   timestamps: true
 });
 
-weeklyReportSchema.index({ userId: 1, weekStart: -1 });
+weeklyReportSchema.index({ userId: 1, weekStart: -1 }, { unique: true });
 
 module.exports = mongoose.model('WeeklyReport', weeklyReportSchema);

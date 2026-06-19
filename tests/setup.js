@@ -8,7 +8,7 @@ require('dotenv').config({ path: path.join(__dirname, '../server/.env') });
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_jwt_secret_key_for_carbon_twin_city';
 
-process.env.MONGOMS_VERSION = '4.4.29';
+process.env.MONGOMS_VERSION = '6.0.14';
 process.env.MONGOMS_MD5_CHECK = 'false';
 process.env.MONGOMS_DOWNLOAD_DIR = path.join(__dirname, '../.mongodb-binaries');
 

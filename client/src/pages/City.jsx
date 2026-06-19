@@ -35,7 +35,7 @@ export default function City() {
   }, []);
 
   useEffect(() => {
-    queueMicrotask(fetchStats);
+    fetchStats();
   }, [fetchStats]);
 
   const communityScore = stats?.communityAverage || 3500;

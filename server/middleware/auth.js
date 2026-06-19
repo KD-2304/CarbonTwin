@@ -24,13 +24,13 @@ const auth = async (req, res, next) => {
       return res.status(401).json({ error: 'No authorization token provided' });
     }
 
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
     // Check if token is blacklisted (revoked session)
     const isBlacklisted = await BlacklistedToken.findOne({ token });
     if (isBlacklisted) {
       return res.status(401).json({ error: 'Session has been revoked' });
     }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.userId = decoded.userId;
     next();
   } catch (error) {

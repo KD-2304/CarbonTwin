@@ -3,6 +3,7 @@ const auth = require('../middleware/auth');
 const Action = require('../models/Action');
 const User = require('../models/User');
 const { calculateActionDelta, updateStreak } = require('../services/scoreService');
+const { checkAndResetWeeklyScore } = require('../utils/dateHelpers');
 
 const router = express.Router();
 
@@ -59,6 +60,9 @@ router.post('/log', auth, validateActionLog, async (req, res) => {
 
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Reset weekly score if transitioning to a new calendar week
+    await checkAndResetWeeklyScore(user);
 
     // Calculate CO₂ delta
     const co2Delta = calculateActionDelta(category, action, km || 0, user.quizAnswers);

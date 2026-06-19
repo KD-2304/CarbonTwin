@@ -6,6 +6,7 @@ const { z } = require('zod');
 const User = require('../models/User');
 const BlacklistedToken = require('../models/BlacklistedToken');
 const { parseCookies } = require('../utils/cookieHelper');
+const { checkAndResetWeeklyScore } = require('../utils/dateHelpers');
 
 const router = express.Router();
 
@@ -144,6 +145,9 @@ router.post('/login', loginLimiter, validateLoginInput, async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
+
+    // Reset weekly score if a new calendar week boundary was crossed
+    await checkAndResetWeeklyScore(user);
 
     const token = jwt.sign(
       { userId: user._id },

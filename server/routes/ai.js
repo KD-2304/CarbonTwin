@@ -4,6 +4,7 @@ const User = require('../models/User');
 const Action = require('../models/Action');
 const WeeklyReport = require('../models/WeeklyReport');
 const { generateWeeklyInsight, handleChatMessage, generateWeeklyReport } = require('../services/aiService');
+const { getStartOfWeek } = require('../utils/dateHelpers');
 
 const router = express.Router();
 
@@ -56,11 +57,15 @@ async function compileReportInBackground(reportId, userId, weekActions, totalDel
     console.log(`⚡ [Weekly Report AI] Compiled in ${duration}ms for user ${userId}`);
   } catch (err) {
     console.error('Background weekly report AI generation failed:', err);
-    await WeeklyReport.findByIdAndUpdate(reportId, {
-      summary: `This week you logged ${weekActions.length} actions with a net impact of ${totalDelta.toFixed(1)} kg CO₂.`,
-      insight: 'AI insight currently unavailable.',
-      goal: 'Keep logging your daily actions to track progress.'
-    });
+    try {
+      await WeeklyReport.findByIdAndUpdate(reportId, {
+        summary: `This week you logged ${weekActions.length} actions with a net impact of ${totalDelta.toFixed(1)} kg CO₂.`,
+        insight: 'AI insight currently unavailable.',
+        goal: 'Keep logging your daily actions to track progress.'
+      });
+    } catch (dbErr) {
+      console.error('Failed to save fallback weekly report to database:', dbErr);
+    }
   }
 }
 
@@ -72,9 +77,7 @@ router.post('/weekly-insight', auth, async (req, res) => {
 
     // Get the start of the current week (Monday)
     const now = new Date();
-    const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
-    weekStart.setHours(0, 0, 0, 0);
+    const weekStart = getStartOfWeek(now);
 
     // If cache exists and was generated this week, return it
     if (user.weeklyInsight && user.weeklyInsight.generatedAt && user.weeklyInsight.generatedAt >= weekStart) {
@@ -132,9 +135,7 @@ router.post('/weekly-report', auth, async (req, res) => {
 
     // Get this week's start (Monday)
     const now = new Date();
-    const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
-    weekStart.setHours(0, 0, 0, 0);
+    const weekStart = getStartOfWeek(now);
 
     // Check if report already exists for this week
     const existingReport = await WeeklyReport.findOne({

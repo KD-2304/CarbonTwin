@@ -15,8 +15,7 @@ router.get('/profile', auth, async (req, res) => {
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // Lazy Reset Check: Ensure weeklyScore is reset if transitioning to a new calendar week
-    await checkAndResetWeeklyScore(user);
+
 
     const streakStatus = getStreakStatus(user.lastLogDate, user.streak);
 
@@ -131,8 +130,7 @@ router.get('/dashboard-summary', auth, async (req, res) => {
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // Lazy Reset Check
-    await checkAndResetWeeklyScore(user);
+
 
     const streakStatus = getStreakStatus(user.lastLogDate, user.streak);
 
