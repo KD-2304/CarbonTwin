@@ -4,6 +4,7 @@ const Action = require('../models/Action');
 const User = require('../models/User');
 const { calculateActionDelta, updateStreak } = require('../services/scoreService');
 const { checkAndResetWeeklyScore } = require('../utils/dateHelpers');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
@@ -147,7 +148,7 @@ router.post('/log', auth, validateActionLog, async (req, res) => {
       const messages = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({ error: messages.join(', ') });
     }
-    console.error('Log action error:', error);
+    logger.error('Log action error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -195,7 +196,7 @@ router.get('/history', auth, async (req, res) => {
       hasNextPage
     });
   } catch (error) {
-    console.error('Get history error:', error);
+    logger.error('Get history error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -227,7 +228,7 @@ router.get('/summary', auth, async (req, res) => {
 
     res.json(summary);
   } catch (error) {
-    console.error('Get summary error:', error);
+    logger.error('Get summary error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

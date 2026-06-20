@@ -2,6 +2,7 @@ const express = require('express');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
 const Action = require('../models/Action');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
@@ -82,7 +83,7 @@ router.get('/stats', auth, async (req, res) => {
 
     res.json(responsePayload);
   } catch (error) {
-    console.error('Community stats error:', error);
+    logger.error('Community stats error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -148,7 +149,7 @@ router.get('/leaderboard', auth, async (req, res) => {
       userRank
     });
   } catch (error) {
-    console.error('Leaderboard error:', error);
+    logger.error('Leaderboard error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

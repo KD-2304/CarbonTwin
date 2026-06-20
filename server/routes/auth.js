@@ -8,6 +8,7 @@ const BlacklistedToken = require('../models/BlacklistedToken');
 const RefreshToken = require('../models/RefreshToken');
 const { parseCookies } = require('../utils/cookieHelper');
 const { checkAndResetWeeklyScore } = require('../utils/dateHelpers');
+const logger = require('../utils/logger');
 
 const generateTokens = async (userId) => {
   const accessToken = jwt.sign(
@@ -176,7 +177,7 @@ router.post('/register', registerLimiter, validateRegisterInput, async (req, res
       }
     });
   } catch (error) {
-    console.error('Register error:', error);
+    logger.error('Register error:', error);
     res.status(500).json({ error: 'Server error during registration' });
   }
 });
@@ -227,7 +228,7 @@ router.post('/login', loginLimiter, validateLoginInput, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error('Login error:', error);
     res.status(500).json({ error: 'Server error during login' });
   }
 });
@@ -270,7 +271,7 @@ router.post('/logout', async (req, res) => {
     clearTokenCookies(res);
     res.json({ message: 'Logged out successfully' });
   } catch (error) {
-    console.error('Logout error:', error);
+    logger.error('Logout error:', error);
     res.status(500).json({ error: 'Server error during logout' });
   }
 });
@@ -340,7 +341,7 @@ router.post('/refresh', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Refresh token error:', error);
+    logger.error('Refresh token error:', error);
     res.status(500).json({ error: 'Server error during token refresh' });
   }
 });

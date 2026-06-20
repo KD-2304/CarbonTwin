@@ -2,6 +2,7 @@ const express = require('express');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
 const { calculateBaselineScore, EMISSION_FACTORS } = require('../services/scoreService');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
@@ -105,7 +106,7 @@ router.post('/submit', auth, validateQuizSubmit, async (req, res) => {
       message: 'Onboarding complete! Your Carbon Twin awaits.'
     });
   } catch (error) {
-    console.error('Quiz submit error:', error);
+    logger.error('Quiz submit error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

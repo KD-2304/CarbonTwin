@@ -2,6 +2,7 @@ const express = require('express');
 const { z } = require('zod');
 const auth = require('../middleware/auth');
 const { EMISSION_FACTORS, getEquivalencies, calculateBaselineScore } = require('../services/scoreService');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
@@ -117,7 +118,7 @@ router.post('/calculate', auth, (req, res) => {
       equivalencies: getEquivalencies(savings)
     });
   } catch (error) {
-    console.error('Simulator error:', error);
+    logger.error('Simulator error:', error);
     res.status(500).json({ error: 'Calculation error' });
   }
 });
