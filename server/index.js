@@ -7,6 +7,8 @@ const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const { parseCookies } = require('./utils/cookieHelper');
 const env = require('./config/env');
+const logger = require('./utils/logger');
+
 
 const app = express();
 
@@ -70,8 +72,8 @@ app.use((req, res, next) => {
   if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
 
 
-    // Exclude login and register routes from CSRF checks
-    if (['/api/auth/login', '/api/auth/register'].includes(req.path)) {
+    // Exclude login, register and refresh routes from CSRF checks
+    if (['/api/auth/login', '/api/auth/register', '/api/auth/refresh'].includes(req.path)) {
       return next();
     }
 
@@ -125,13 +127,13 @@ if (require.main === module) {
 
   mongoose.connect(MONGO_URI)
     .then(() => {
-      console.log('✅ Connected to MongoDB');
+      logger.info('✅ Connected to MongoDB');
       app.listen(PORT, () => {
-        console.log(`🚀 Carbon Twin City API running on port ${PORT}`);
+        logger.info(`🚀 Carbon Twin City API running on port ${PORT}`);
       });
     })
     .catch(err => {
-      console.error('❌ MongoDB connection error:', err.message);
+      logger.error('❌ MongoDB connection error:', err);
       process.exit(1);
     });
 }

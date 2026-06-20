@@ -30,6 +30,20 @@ API.interceptors.request.use(config => {
   return config;
 });
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 // Handle responses globally (extract CSRF tokens and handle 401s)
 API.interceptors.response.use(
   response => {
@@ -39,7 +53,58 @@ API.interceptors.response.use(
     }
     return response;
   },
-  error => {
+  async error => {
+    const originalRequest = error.config;
+
+    // Detect access token expiration and trigger refresh
+    if (error.response?.status === 401 && error.response?.data?.code === 'TOKEN_EXPIRED' && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(() => {
+            return API(originalRequest);
+          })
+          .catch(err => {
+            return Promise.reject(err);
+          });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const { data } = await axios.post(
+          (import.meta.env.VITE_API_URL || '/api') + '/auth/refresh',
+          {},
+          { withCredentials: true }
+        );
+
+        if (data.csrfToken) {
+          csrfTokenMemory = data.csrfToken;
+        }
+
+        processQueue(null);
+        isRefreshing = false;
+        return API(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        isRefreshing = false;
+
+        localStorage.removeItem('ctc_user');
+        csrfTokenMemory = null;
+        if (window.location.pathname !== '/login') {
+          if (navigateFn) {
+            navigateFn('/login');
+          } else {
+            window.location.href = '/login';
+          }
+        }
+        return Promise.reject(refreshError);
+      }
+    }
+
+    // Other 401 errors (unauthorized, invalid token, revoked session, etc.)
     if (error.response?.status === 401) {
       localStorage.removeItem('ctc_user');
       csrfTokenMemory = null;
@@ -81,7 +146,7 @@ export const quizAPI = {
 // ─── ACTIONS ──────────────────────────────────────────────────
 export const actionsAPI = {
   log: (data) => API.post('/actions/log', data),
-  getHistory: (days = 7) => API.get(`/actions/history?days=${days}`),
+  getHistory: (days = 7, limit = 20, cursor = '') => API.get(`/actions/history?days=${days}&limit=${limit}&cursor=${cursor}`),
   getSummary: () => API.get('/actions/summary'),
 };
 

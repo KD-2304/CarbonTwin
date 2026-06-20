@@ -152,22 +152,48 @@ router.post('/log', auth, validateActionLog, async (req, res) => {
   }
 });
 
-// GET /api/actions/history?days=7
+// GET /api/actions/history?days=7&limit=20&cursor=timestamp
 router.get('/history', auth, async (req, res) => {
   try {
-    let days = parseInt(req.query.days);
-    if (isNaN(days) || days <= 0 || days > 365) {
-      days = 7;
+    let limit = parseInt(req.query.limit) || 20;
+    if (isNaN(limit) || limit < 1 || limit > 100) {
+      limit = 20;
     }
-    const since = new Date();
-    since.setDate(since.getDate() - days);
 
-    const actions = await Action.find({
-      userId: req.userId,
-      timestamp: { $gte: since }
-    }).sort({ timestamp: -1 }).limit(200);
+    const query = { userId: req.userId };
 
-    res.json(actions);
+    if (req.query.cursor) {
+      const cursorDate = new Date(req.query.cursor);
+      if (!isNaN(cursorDate.getTime())) {
+        query.timestamp = { $lt: cursorDate };
+      }
+    } else {
+      let days = parseInt(req.query.days);
+      if (!isNaN(days) && days > 0 && days <= 365) {
+        const since = new Date();
+        since.setDate(since.getDate() - days);
+        query.timestamp = { $gte: since };
+      }
+    }
+
+    const actions = await Action.find(query)
+      .sort({ timestamp: -1 })
+      .limit(limit + 1);
+
+    const hasNextPage = actions.length > limit;
+    if (hasNextPage) {
+      actions.pop();
+    }
+
+    const nextCursor = (hasNextPage && actions.length > 0)
+      ? actions[actions.length - 1].timestamp.toISOString()
+      : null;
+
+    res.json({
+      actions,
+      nextCursor,
+      hasNextPage
+    });
   } catch (error) {
     console.error('Get history error:', error);
     res.status(500).json({ error: 'Server error' });

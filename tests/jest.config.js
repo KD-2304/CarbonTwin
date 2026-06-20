@@ -8,7 +8,9 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
   moduleNameMapper: {
     '^mongoose$': '<rootDir>/server/node_modules/mongoose',
-    '^dotenv$': '<rootDir>/server/node_modules/dotenv'
+    '^dotenv$': '<rootDir>/server/node_modules/dotenv',
+    '^jsonwebtoken$': '<rootDir>/server/node_modules/jsonwebtoken',
+    '^winston$': '<rootDir>/server/node_modules/winston'
   }
 };
 

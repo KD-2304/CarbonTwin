@@ -1,3 +1,5 @@
+const logger = require('../utils/logger');
+
 /**
  * Centralized Error Handler Middleware
  * 
@@ -47,7 +49,7 @@ const errorHandler = (err, req, res, next) => {
   const message = statusCode === 500 ? 'Internal server error' : err.message;
 
   if (statusCode === 500) {
-    console.error('Unhandled error:', err);
+    logger.error('Unhandled error:', err);
   }
 
   res.status(statusCode).json({ error: message });

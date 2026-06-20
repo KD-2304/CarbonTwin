@@ -5,8 +5,68 @@ const rateLimit = require('express-rate-limit');
 const { z } = require('zod');
 const User = require('../models/User');
 const BlacklistedToken = require('../models/BlacklistedToken');
+const RefreshToken = require('../models/RefreshToken');
 const { parseCookies } = require('../utils/cookieHelper');
 const { checkAndResetWeeklyScore } = require('../utils/dateHelpers');
+
+const generateTokens = async (userId) => {
+  const accessToken = jwt.sign(
+    { userId },
+    process.env.JWT_SECRET,
+    { expiresIn: '15m' }
+  );
+
+  const refreshToken = jwt.sign(
+    { userId, jti: crypto.randomBytes(16).toString('hex') },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 7);
+
+  await RefreshToken.create({
+    token: refreshToken,
+    userId,
+    expiresAt
+  });
+
+  return { accessToken, refreshToken };
+};
+
+const setTokenCookies = (res, accessToken, refreshToken) => {
+  res.cookie('ctc_token', accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+    maxAge: 15 * 60 * 1000 // 15 minutes
+  });
+
+  res.cookie('ctc_refresh_token', refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  });
+};
+
+const clearTokenCookies = (res) => {
+  res.clearCookie('ctc_token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
+  });
+  res.clearCookie('ctc_refresh_token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
+  });
+  res.clearCookie('ctc_csrf_token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
+  });
+};
 
 const router = express.Router();
 
@@ -90,28 +150,18 @@ router.post('/register', registerLimiter, validateRegisterInput, async (req, res
     });
     await user.save();
 
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '30d' }
-    );
+    const { accessToken, refreshToken } = await generateTokens(user._id);
 
     const csrfToken = crypto.randomBytes(24).toString('hex');
 
-    // Set HttpOnly cookie
-    res.cookie('ctc_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-    });
+    setTokenCookies(res, accessToken, refreshToken);
 
     // Set HttpOnly CSRF cookie for security
     res.cookie('ctc_csrf_token', csrfToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
     res.status(201).json({
@@ -149,28 +199,18 @@ router.post('/login', loginLimiter, validateLoginInput, async (req, res) => {
     // Reset weekly score if a new calendar week boundary was crossed
     await checkAndResetWeeklyScore(user);
 
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '30d' }
-    );
+    const { accessToken, refreshToken } = await generateTokens(user._id);
 
     const csrfToken = crypto.randomBytes(24).toString('hex');
 
-    // Set HttpOnly cookie
-    res.cookie('ctc_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-    });
+    setTokenCookies(res, accessToken, refreshToken);
 
     // Set HttpOnly CSRF cookie for security
     res.cookie('ctc_csrf_token', csrfToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
     res.json({
@@ -196,11 +236,13 @@ router.post('/login', loginLimiter, validateLoginInput, async (req, res) => {
 router.post('/logout', async (req, res) => {
   try {
     let token = null;
+    let refreshToken = null;
 
     // 1. Try reading from cookie
     if (req.headers.cookie) {
       const cookies = parseCookies(req.headers.cookie);
       token = cookies.ctc_token;
+      refreshToken = cookies.ctc_refresh_token;
     }
 
     // 2. Fallback to Authorization header
@@ -221,20 +263,85 @@ router.post('/logout', async (req, res) => {
       );
     }
 
-    res.clearCookie('ctc_token', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
-    });
-    res.clearCookie('ctc_csrf_token', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
-    });
+    if (refreshToken) {
+      await RefreshToken.deleteOne({ token: refreshToken });
+    }
+
+    clearTokenCookies(res);
     res.json({ message: 'Logged out successfully' });
   } catch (error) {
     console.error('Logout error:', error);
     res.status(500).json({ error: 'Server error during logout' });
+  }
+});
+
+// POST /api/auth/refresh
+router.post('/refresh', async (req, res) => {
+  try {
+    let refreshToken = null;
+
+    if (req.headers.cookie) {
+      const cookies = parseCookies(req.headers.cookie);
+      refreshToken = cookies.ctc_refresh_token;
+    }
+
+    if (!refreshToken) {
+      return res.status(401).json({ error: 'No refresh token provided' });
+    }
+
+    // Verify refresh token
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ error: 'Invalid or expired refresh token' });
+    }
+
+    // Find refresh token in DB
+    const tokenDoc = await RefreshToken.findOne({ token: refreshToken });
+    if (!tokenDoc) {
+      return res.status(401).json({ error: 'Refresh token has been revoked' });
+    }
+
+    const userId = decoded.userId;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+
+    // Delete old refresh token (rotate)
+    await RefreshToken.deleteOne({ token: refreshToken });
+
+    // Generate new tokens
+    const tokens = await generateTokens(userId);
+
+    setTokenCookies(res, tokens.accessToken, tokens.refreshToken);
+
+    // Generate new CSRF token
+    const csrfToken = crypto.randomBytes(24).toString('hex');
+    res.cookie('ctc_csrf_token', csrfToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    res.json({
+      csrfToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        city: user.city,
+        country: user.country,
+        onboardingComplete: user.onboardingComplete,
+        currentScore: user.currentScore,
+        streak: user.streak
+      }
+    });
+  } catch (error) {
+    console.error('Refresh token error:', error);
+    res.status(500).json({ error: 'Server error during token refresh' });
   }
 });
 
