@@ -184,12 +184,21 @@ export default function Dashboard() {
                 <Target size={14} className="text-teal-400" />
                 <p className="section-title">My Goal</p>
               </div>
-              {targetGoal && !showGoalForm && (
+              {targetGoal && (
                 <button
-                  onClick={() => { setShowGoalForm(true); setGoalInput(String(targetGoal)); }}
+                  onClick={() => {
+                    if (showGoalForm) {
+                      setShowGoalForm(false);
+                    } else {
+                      setShowGoalForm(true);
+                      setGoalInput(String(targetGoal));
+                    }
+                  }}
+                  aria-expanded={showGoalForm}
+                  aria-controls="goal-form-panel"
                   className="text-[10px] font-bold text-sand-500 hover:text-sand-300 transition-colors uppercase tracking-wider"
                 >
-                  Edit
+                  {showGoalForm ? 'Cancel' : 'Edit'}
                 </button>
               )}
             </div>
@@ -216,7 +225,7 @@ export default function Dashboard() {
                 </p>
               </div>
             ) : (
-              <div className="flex gap-2">
+              <div id="goal-form-panel" className="flex gap-2">
                 <input
                   type="number"
                   value={goalInput}

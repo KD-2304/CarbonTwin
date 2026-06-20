@@ -106,9 +106,9 @@ router.post('/register', registerLimiter, validateRegisterInput, async (req, res
       maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
     });
 
-    // Set non-HttpOnly CSRF cookie for client-side access
+    // Set HttpOnly CSRF cookie for security
     res.cookie('ctc_csrf_token', csrfToken, {
-      httpOnly: false,
+      httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
       maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
@@ -165,9 +165,9 @@ router.post('/login', loginLimiter, validateLoginInput, async (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
     });
 
-    // Set non-HttpOnly CSRF cookie for client-side access
+    // Set HttpOnly CSRF cookie for security
     res.cookie('ctc_csrf_token', csrfToken, {
-      httpOnly: false,
+      httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
       maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
@@ -227,7 +227,7 @@ router.post('/logout', async (req, res) => {
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
     });
     res.clearCookie('ctc_csrf_token', {
-      httpOnly: false,
+      httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
     });

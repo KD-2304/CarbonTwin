@@ -28,7 +28,7 @@ router.get('/profile', auth, async (req, res) => {
     if (!csrfToken) {
       csrfToken = crypto.randomBytes(24).toString('hex');
       res.cookie('ctc_csrf_token', csrfToken, {
-        httpOnly: false,
+        httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
         maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
@@ -193,7 +193,7 @@ router.get('/dashboard-summary', auth, async (req, res) => {
     if (!csrfToken) {
       csrfToken = crypto.randomBytes(24).toString('hex');
       res.cookie('ctc_csrf_token', csrfToken, {
-        httpOnly: false,
+        httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
         maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days

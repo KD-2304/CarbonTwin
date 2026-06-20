@@ -6,25 +6,18 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const { parseCookies } = require('./utils/cookieHelper');
-
-// Verify critical environment variables at startup
-const REQUIRED_ENV = ['JWT_SECRET', 'MONGO_URI', 'GEMINI_API_KEY'];
-const missing = REQUIRED_ENV.filter(key => !process.env[key]);
-if (missing.length > 0 && process.env.NODE_ENV !== 'test') {
-  console.error(`❌ Critical Config Error: Missing environment variables: [${missing.join(', ')}]`);
-  process.exit(1);
-}
+const env = require('./config/env');
 
 const app = express();
 
 // Trust reverse proxy (e.g. Nginx on EC2) in production for correct client IP tracking and cookie security
-if (process.env.NODE_ENV === 'production') {
+if (env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
 // ─── CORS CONFIGURATION ────────────────────────────────────────
-const allowedOrigins = process.env.CLIENT_URL
-  ? process.env.CLIENT_URL.split(',').map(url => url.trim().replace(/\/$/, ''))
+const allowedOrigins = env.CLIENT_URL
+  ? env.CLIENT_URL.split(',').map(url => url.trim().replace(/\/$/, ''))
   : ['http://localhost:5173'];
 
 app.use(cors({
@@ -123,8 +116,8 @@ const errorHandler = require('./middleware/errorHandler');
 app.use(errorHandler);
 
 // ─── DATABASE + SERVER START ──────────────────────────────────
-const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/carbon-twin-city';
+const PORT = env.PORT;
+const MONGO_URI = env.MONGO_URI;
 
 if (require.main === module) {
   // Start background cron jobs
