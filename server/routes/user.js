@@ -6,6 +6,7 @@ const User = require('../models/User');
 const { getStreakStatus } = require('../services/scoreService');
 const { checkAndResetWeeklyScore } = require('../utils/dateHelpers');
 const { parseCookies } = require('../utils/cookieHelper');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
@@ -56,7 +57,7 @@ router.get('/profile', auth, async (req, res) => {
       createdAt: user.createdAt
     });
   } catch (error) {
-    console.error('Get profile error:', error);
+    logger.error('Get profile error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -97,7 +98,7 @@ router.put('/profile', auth, async (req, res) => {
       country: user.country
     });
   } catch (error) {
-    console.error('Update profile error:', error);
+    logger.error('Update profile error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -117,7 +118,7 @@ router.get('/score', auth, async (req, res) => {
       dailySnapshots: user.dailySnapshots.slice(-30)
     });
   } catch (error) {
-    console.error('Get score error:', error);
+    logger.error('Get score error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -207,7 +208,7 @@ router.get('/dashboard-summary', auth, async (req, res) => {
       summary: summary
     });
   } catch (error) {
-    console.error('Get dashboard summary error:', error);
+    logger.error('Get dashboard summary error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -239,7 +240,7 @@ router.put('/goal', auth, async (req, res) => {
       baselineScore: user.baselineScore
     });
   } catch (error) {
-    console.error('Update goal error:', error);
+    logger.error('Update goal error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

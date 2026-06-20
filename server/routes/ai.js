@@ -5,6 +5,7 @@ const Action = require('../models/Action');
 const WeeklyReport = require('../models/WeeklyReport');
 const { generateWeeklyInsight, handleChatMessage, generateWeeklyReport } = require('../services/aiService');
 const { getStartOfWeek } = require('../utils/dateHelpers');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 
@@ -54,9 +55,9 @@ async function compileReportInBackground(reportId, userId, weekActions, totalDel
       goal: reportData.goal || '',
     });
     const duration = Date.now() - startTime;
-    console.log(`⚡ [Weekly Report AI] Compiled in ${duration}ms for user ${userId}`);
+    logger.info(`⚡ [Weekly Report AI] Compiled in ${duration}ms for user ${userId}`);
   } catch (err) {
-    console.error('Background weekly report AI generation failed:', err);
+    logger.error('Background weekly report AI generation failed:', err);
     try {
       await WeeklyReport.findByIdAndUpdate(reportId, {
         summary: `This week you logged ${weekActions.length} actions with a net impact of ${totalDelta.toFixed(1)} kg CO₂.`,
@@ -64,7 +65,7 @@ async function compileReportInBackground(reportId, userId, weekActions, totalDel
         goal: 'Keep logging your daily actions to track progress.'
       });
     } catch (dbErr) {
-      console.error('Failed to save fallback weekly report to database:', dbErr);
+      logger.error('Failed to save fallback weekly report to database:', dbErr);
     }
   }
 }
@@ -102,7 +103,7 @@ router.post('/weekly-insight', auth, async (req, res) => {
 
     res.json(insight);
   } catch (error) {
-    console.error('Weekly insight error:', error);
+    logger.error('Weekly insight error:', error);
     res.status(500).json({ error: 'Failed to generate insight' });
   }
 });
@@ -122,7 +123,7 @@ router.post('/chat', auth, async (req, res) => {
     const result = await handleChatMessage(message, userData);
     res.json(result);
   } catch (error) {
-    console.error('AI chat error:', error);
+    logger.error('AI chat error:', error);
     res.status(500).json({ error: 'Failed to process chat message' });
   }
 });
@@ -179,7 +180,7 @@ router.post('/weekly-report', auth, async (req, res) => {
 
     res.status(202).json(report);
   } catch (error) {
-    console.error('Weekly report error:', error);
+    logger.error('Weekly report error:', error);
     res.status(500).json({ error: 'Failed to generate report' });
   }
 });
@@ -192,7 +193,7 @@ router.get('/reports', auth, async (req, res) => {
       .limit(52);
     res.json(reports);
   } catch (error) {
-    console.error('Get reports error:', error);
+    logger.error('Get reports error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

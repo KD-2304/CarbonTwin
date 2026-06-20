@@ -1,12 +1,10 @@
-/**
- * AI Service — Google Gemini API integration for personalized carbon coaching
- */
+const logger = require('../utils/logger');
 
 let GoogleGenerativeAI;
 try {
   ({ GoogleGenerativeAI } = require('@google/generative-ai'));
 } catch (e) {
-  console.warn('Google Generative AI SDK not installed. AI features will be disabled.');
+  logger.warn('Google Generative AI SDK not installed. AI features will be disabled.');
 }
 
 let genAIInstance = null;
@@ -24,7 +22,7 @@ function getClient() {
     cachedModel = genAIInstance.getGenerativeModel({ model: 'gemini-2.0-flash' });
     return cachedModel;
   } catch (e) {
-    console.error('Failed to initialize Gemini client:', e.message);
+    logger.error('Failed to initialize Gemini client:', e.message);
     return null;
   }
 }
@@ -80,7 +78,7 @@ GLOBAL CONTEXT:
     const text = result.response.text();
     return JSON.parse(text);
   } catch (error) {
-    console.error('Gemini API error (weekly insight):', error.message);
+    logger.error('Gemini API error (weekly insight):', error.message);
     return getFallbackInsight(userData);
   }
 }
@@ -123,7 +121,7 @@ RULES:
     });
     return { response: result.response.text() };
   } catch (error) {
-    console.error('Gemini API error (chat):', error.message);
+    logger.error('Gemini API error (chat):', error.message);
     return { response: "I'm having trouble connecting right now. Please try again in a moment." };
   }
 }
@@ -190,7 +188,7 @@ THIS WEEK'S ACTIVITY:
       categoryBreakdown: categoryTotals
     };
   } catch (error) {
-    console.error('Gemini API error (weekly report):', error.message);
+    logger.error('Gemini API error (weekly report):', error.message);
     return {
       summary: `This week you logged ${weekActions.length} actions with a net impact of ${totalDelta.toFixed(1)} kg CO₂.`,
       insight: '',
